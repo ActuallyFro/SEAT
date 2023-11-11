@@ -1,0 +1,3 @@
+[submodule "scripts/SJFI"]
+	path = scripts/SJFI
+	url = https://github.com/ActuallyFro/SJFI.git
