@@ -74,18 +74,13 @@
   <script>
     //------------------------
     //0. DEFAULT VARS
-    //Note: jsonDataString is in `SEAT-Data.js`
-
     window.SJFI_storageKey = 'Example_LocalStorage-DATA';    
 
-    // window.SJFI_data = { // Object === {} <can use .find()> ; Array === [] <maybe .find()?>; String === "" <use it as a .(name)>
-    //   name: "A Default Name",
-    //   message: "This data is the default message"
-    // };
     window.SJFI_data = {
       missions: []
     };
 
+    //Note: jsonDataString is in `SEAT-Data.js`
     const parsedData = JSON.parse(jsonDataString);
     window.SE_Data_References = parsedData;
 
@@ -116,38 +111,11 @@
     }
     pageSetupFormCreateItemSelectList();
 
-
-    // console.log(SE_Data_References.Contract);
-
-    //General Updating Function
-    //-~-~-~-~-~-~-~-~-~-~-~
-    // function reloadTableData() {
-    //   document.getElementById('TableName').innerHTML = window.SJFI_data.name; //defaults to object-defined name
-    //   document.getElementById('TableMessage').innerHTML = window.SJFI_data.message; //defaults to object-defined message
-    // }
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //----------------------------------------------------------------------
     //I. Store Form content into Local Storage (via SJFI lib) on Form Change
     //----------------------------------------------------------------------
-    // I.a. Manual -- Via Submit
     function storeFormData() {
-      // const itemName = document.getElementById("formAcquisitionItem").value;
-      // const amount = document.getElementById("formAmount").value;
-      // // Add other form fields as needed
-
-      // // Create mission object
-      // const mission = {
-      //   amount: parseInt(amount),
-      //   // Add other form fields as needed
-      // };
-
-      // alert('Adding mission: ' + JSON.stringify(mission) + ' for item: ' + itemName);
-
-      // window.SJFI_data.missions.set(itemName, mission);
-
-      // storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
-
       const itemName = document.getElementById("formAcquisitionItem").value;
       const amount = document.getElementById("formAmount").value;
       const firstName = ""; // Add the logic to get the value from the form or other source
@@ -170,42 +138,32 @@
 
     }
 
-      //I.b. Automatic -- via keyboard input/change of fields
-      // document.getElementById('formExName').addEventListener('input', function() {storeFormData();}); //Cannot run from <HEAD!>
-      // document.getElementById('formExMessage').addEventListener('input', function() {storeFormData();});//SAME! --^
-
     //--------------------------------------
     //II. Load Form content on Page Referesh
     //--------------------------------------
-    function loadFormData() {
-      let formData = loadJSONObjectsFromKey(SJFI_storageKey);
+    // NOT used presently...
+    // function loadFormData() {
+    //   let formData = loadJSONObjectsFromKey(SJFI_storageKey);
 
-      if (formData !== null) {
-        // if (debug) {console.log('Data loaded from key: ', formData);}
+    //   if (formData !== null) {
 
-        window.SJFI_data = formData;
+    //     window.SJFI_data = formData;
 
-        const loadedName = window.SJFI_data.name;
-        const loadedMessage = window.SJFI_data.message;
+    //     const loadedName = window.SJFI_data.name;
+    //     const loadedMessage = window.SJFI_data.message;
 
-        document.getElementById('formExName').value = loadedName;
-        document.getElementById('formExMessage').value = loadedMessage;
-
-      } 
-      // else {
-      //   // if (debug) {console.error("Data loaded from key is empty...skipping");}
-      // }            
-    }
+    //     document.getElementById('formExName').value = loadedName;
+    //     document.getElementById('formExMessage').value = loadedMessage;
+    //   }
+    // }
 
     function displayCurrentMissions() {
       const currentMissionListDiv = document.getElementById("current-mission-list");
       currentMissionListDiv.innerHTML = ""; // Clear existing content
 
-      // Create a table to display missions
       const table = document.createElement("table");
       table.border = "1";
 
-      // Add table headers
       const headers = ["Item", "Amount", "FirstName", "SecondName", "Planet", "DateAccepted"];
       const headerRow = document.createElement("tr");
       headers.forEach(headerText => {
@@ -215,7 +173,7 @@
       });
       table.appendChild(headerRow);
 
-      // Add table rows with mission data
+      // Add table rows with mission data to `current-mission-list`
       window.SJFI_data.missions.forEach((mission, itemName) => {
         const row = document.createElement("tr");
 
@@ -237,11 +195,7 @@
     //III. Clear Local Storage
     //------------------------
     function clearLocalStorage() {
-      // From SJFI lib
       clearLocalStorageALLKeys();
-      // if (debug) {
-      //   console.log('Local Storage cleared.');
-      // }
       location.reload();
     }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -275,7 +229,7 @@
     //III. Default Loads
     //------------------------
     function reloadTableData() {
-      loadFormData();
+      //loadFormData();
       displayCurrentMissions();
     }
     window.onload = reloadTableData;
