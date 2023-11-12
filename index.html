@@ -69,10 +69,10 @@
   <script>
     //------------------------
     //0. DEFAULT VARS
-    window.SJFI_storageKey = 'Example_LocalStorage-DATA';    
+    window.SJFI_storageKey = 'SEAT-DATA';    
 
     window.SJFI_data = {
-      missions: []
+      missions: {}
     };
 
     //Note: jsonDataString is in `SEAT-Data.js`
@@ -120,7 +120,6 @@
       const planet = ""; // Add the logic to get the value from the form or other source
       const dateAccepted = ""; // Add the logic to get the value from the form or other source
 
-      // Create mission object
       const mission = {
         amount: parseInt(amount),
         firstName: firstName,
@@ -134,17 +133,16 @@
         window.SJFI_data.missions[itemName] = [];
       }
       // ChatGPT says this is a common pattern...:`window.SJFI_data.missions[itemName] = window.SJFI_data.missions[itemName] || [];` ... :-/
-      
+
       window.SJFI_data.missions[itemName].push(mission);
 
       reloadTableData();
 
-      // Store the updated data in local storage
       storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
 
-      // debug print data to console
-      console.log("This is what was stored:", window.SJFI_data);
+      // console.log("(KEY:'", window.SJFI_storageKey ,"') This is what was stored:", window.SJFI_data);
     }
+
 
     //--------------------------------------
     //II. Load Form content on Page Referesh
@@ -153,16 +151,11 @@
       let formData = loadJSONObjectsFromKey(SJFI_storageKey);
 
       if (formData !== null) {
-
         window.SJFI_data = formData;
-
-
-        // const loadedName = window.SJFI_data.name;
-        // const loadedMessage = window.SJFI_data.message;
-
-        // document.getElementById('formExName').value = loadedName;
-        // document.getElementById('formExMessage').value = loadedMessage;
       }
+
+      // debug print
+      // console.log("[loadFormData()](KEY:'", window.SJFI_storageKey ,"') This is what was loaded:", window.SJFI_data);
     }
 
     function displayCurrentMissions() {
@@ -209,7 +202,7 @@
       currentMissionListDiv.appendChild(table);
 
       // debug print array to console
-      console.log(window.SJFI_data.missions);
+      // console.log(window.SJFI_data.missions);
     }
 
 
@@ -262,8 +255,7 @@
     
     window.onload = firstPageLoad;
 
-    // print localstorage data to console
-    console.log("This is what was loaded:", window.SJFI_data);
+    // console.log("(KEY:'", window.SJFI_storageKey ,"') This is what was loaded:", window.SJFI_data);
 
     //Import Button Listener
     //-~-~-~-~-~-~-~-~-~-~-~
