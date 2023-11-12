@@ -8,8 +8,6 @@
     <script type="text/javascript" src="scripts/SEAT-Data.js"></script>
 
     <link rel="stylesheet" type="text/css" href="styles/seat.css">
-
-
   </head>
   
   <body translate="no"style="background-color: black; color: #FFF;">
@@ -29,12 +27,9 @@
             <!-- Mandatory Form Items -->
               <!-- Acquisition item (from `"Contract"."Acquisition Request Item".(...) and amount`)-->
               <label for="formAcquisitionItem">Acquisition Item:</label>
-              <!-- <input type="text" id="formAcquisitionItem" name="formAcquisitionItem" oninput="storeFormData()"><br><br> -->
-              <!-- <select id="formAcquisitionItem" name="formAcquisitionItem" onchange="storeFormData(); reloadTableData();"></select> -->
               <select id="formAcquisitionItem" name="formAcquisitionItem"></select>
               
               <label for="formAmount">Amount:</label>
-              <!-- <input type="number" id="formAmount" name="formAmount" oninput="storeFormData(); reloadTableData();"><br><br> -->
               <input type="number" id="formAmount" name="formAmount"><br><br>
 
             <!-- Old Example fields: -->
@@ -116,6 +111,8 @@
     //I. Store Form content into Local Storage (via SJFI lib) on Form Change
     //----------------------------------------------------------------------
     function storeFormData() {
+      event.preventDefault(); // Prevent the default form submission behavior -- AK PAGE REFRESH
+
       const itemName = document.getElementById("formAcquisitionItem").value;
       const amount = document.getElementById("formAmount").value;
       const firstName = ""; // Add the logic to get the value from the form or other source
@@ -132,10 +129,18 @@
         dateAccepted: dateAccepted,
       };
 
-      window.SJFI_data.missions.set(itemName, mission);
+      // Ensure there's an array for the item name and add the mission
+      if (!window.SJFI_data.missions[itemName]) {
+        window.SJFI_data.missions[itemName] = [];
+      }
+      // ChatGPT says this is a common pattern...:`window.SJFI_data.missions[itemName] = window.SJFI_data.missions[itemName] || [];` ... :-/
+      
+      window.SJFI_data.missions[itemName].push(mission);
 
+      reloadTableData();
+
+      // Store the updated data in local storage
       storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
-
     }
 
     //--------------------------------------
