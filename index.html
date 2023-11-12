@@ -141,26 +141,29 @@
 
       // Store the updated data in local storage
       storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+
+      // debug print data to console
+      console.log("This is what was stored:", window.SJFI_data);
     }
 
     //--------------------------------------
     //II. Load Form content on Page Referesh
     //--------------------------------------
-    // NOT used presently...
-    // function loadFormData() {
-    //   let formData = loadJSONObjectsFromKey(SJFI_storageKey);
+    function loadFormData() {
+      let formData = loadJSONObjectsFromKey(SJFI_storageKey);
 
-    //   if (formData !== null) {
+      if (formData !== null) {
 
-    //     window.SJFI_data = formData;
+        window.SJFI_data = formData;
 
-    //     const loadedName = window.SJFI_data.name;
-    //     const loadedMessage = window.SJFI_data.message;
 
-    //     document.getElementById('formExName').value = loadedName;
-    //     document.getElementById('formExMessage').value = loadedMessage;
-    //   }
-    // }
+        // const loadedName = window.SJFI_data.name;
+        // const loadedMessage = window.SJFI_data.message;
+
+        // document.getElementById('formExName').value = loadedName;
+        // document.getElementById('formExMessage').value = loadedMessage;
+      }
+    }
 
     function displayCurrentMissions() {
       const currentMissionListDiv = document.getElementById("current-mission-list");
@@ -247,11 +250,20 @@
     //------------------------
     //III. Default Loads
     //------------------------
+   
     function reloadTableData() {
-      //loadFormData();
       displayCurrentMissions();
     }
-    window.onload = reloadTableData;
+
+    function firstPageLoad() {
+      loadFormData();
+      reloadTableData();
+    }
+    
+    window.onload = firstPageLoad;
+
+    // print localstorage data to console
+    console.log("This is what was loaded:", window.SJFI_data);
 
     //Import Button Listener
     //-~-~-~-~-~-~-~-~-~-~-~
