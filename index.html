@@ -179,22 +179,36 @@
       table.appendChild(headerRow);
 
       // Add table rows with mission data to `current-mission-list`
-      window.SJFI_data.missions.forEach((mission, itemName) => {
-        const row = document.createElement("tr");
+      Object.keys(window.SJFI_data.missions).forEach(itemName => {
+        const missionsForItem = window.SJFI_data.missions[itemName];
+        missionsForItem.forEach(mission => {
+          const row = document.createElement("tr");
 
-        // Add mission data to the row
-        const data = [itemName, mission.amount, mission.firstName, mission.secondName, mission.planet, mission.dateAccepted];
-        data.forEach(cellData => {
-          const cell = document.createElement("td");
-          cell.textContent = cellData;
-          row.appendChild(cell);
+          // Add mission data to the row
+          const data = [
+                        itemName,
+                        mission.amount ?? '',
+                        mission.firstName ?? '',
+                        mission.secondName ?? '',
+                        mission.planet ?? '',
+                        mission.dateAccepted ?? '',
+                      ];
+          data.forEach(cellData => {
+            const cell = document.createElement("td");
+            cell.textContent = cellData;
+            row.appendChild(cell);
+          });
+
+          table.appendChild(row);
         });
-
-        table.appendChild(row);
       });
 
       currentMissionListDiv.appendChild(table);
+
+      // debug print array to console
+      console.log(window.SJFI_data.missions);
     }
+
 
     //------------------------
     //III. Clear Local Storage
