@@ -63,73 +63,55 @@
   </head>
   
   <body translate="no"style="background-color: black; color: #FFF;">
-  <!-- Container start -->
-    <div id="container">
+    <div id="container"><!-- Container start -->
       <div id="row">
         <div class="col-md-12">
-          <!-- Centered Title (LARGER than <h1>) for SEAT -->
+          <!-- -------------- -->
+          <!-- Centered Title -->
+          <!-- -------------- -->
           <h1 style="text-align: center; font-size: 3em;"><u>SEAT: Space Engineers Acquisition Tool</u></h1>
 
-  <!-- TEMP CODE 1 - Import/Export
-    <table border="1">
-      <tr>
-        <th>Key</th>
-        <th>Value</th>
-      </tr>
-      <tr>
-        <td>name</td>
-        <td id="TableName"></td>
-      </tr>
-      <tr>
-        <td>message</td>
-        <td id="TableMessage"></td>
-      </tr>
-    </table> -->
+          <!-- ------------------ -->
+          <hr><h1><u>Add Mission</u></h1>
+          <!-- ------------------ -->
+          <form>
+            <!-- Mandatory Form Items -->
+              <!-- Acquisition item (from `"Contract"."Acquisition Request Item".(...) and amount`)-->
+              <label for="formAcquisitionItem">Acquisition Item:</label>
+              <!-- <input type="text" id="formAcquisitionItem" name="formAcquisitionItem" oninput="storeFormData()"><br><br> -->
+              <select id="formAcquisitionItem" name="formAcquisitionItem" onchange="storeFormData()"></select>
+              
+              <label for="formAmount">Amount:</label>
+              <input type="number" id="formAmount" name="formAmount" oninput="storeFormData()"><br><br>
 
+            <!-- Old Example fields: -->
+              <!-- <label for="formExName">Name:</label>
+              <input type="text" id="formExName" name="formExName" oninput="storeFormData()"><br><br>
+              <label for="formExMessage">Message:</label><br>
+              <textarea id="formExMessage" name="formExMessage" rows="4" cols="50" oninput="storeFormData()"></textarea><br><br> -->
 
-  <!-- TEMP CODE 2 - LocalStorage -->
-    <hr>
-    <h1><u>Add Mission</u></h1>
-    <form>
-      <!-- Mandatory Form Items -->
-        <!-- Acquisition item (from `"Contract"."Acquisition Request Item".(...) and amount`)-->
-        <label for="formAcquisitionItem">Acquisition Item:</label>
-        <!-- <input type="text" id="formAcquisitionItem" name="formAcquisitionItem" oninput="storeFormData()"><br><br> -->
-        <select id="formAcquisitionItem" name="formAcquisitionItem" onchange="storeFormData()"></select>
-        
-        <label for="formAmount">Amount:</label>
-        <input type="number" id="formAmount" name="formAmount" oninput="storeFormData()"><br><br>
+            <!-- + to expand, metadata/secondary items -->
+              <!-- TODO -->
+            <input type="submit" value="Submit">
+          </form>
 
-      <!-- Old Example fields: -->
-        <!-- <label for="formExName">Name:</label>
-        <input type="text" id="formExName" name="formExName" oninput="storeFormData()"><br><br>
-        <label for="formExMessage">Message:</label><br>
-        <textarea id="formExMessage" name="formExMessage" rows="4" cols="50" oninput="storeFormData()"></textarea><br><br> -->
+          <!-- ------------------------------- -->
+          <hr><h1><u>Current Mission List</u></h1>
+          <!-- ------------------------------- -->
+          <!-- Table that is created from the list of Acqusition Entries (e.g., a MAP of the deliverable, with given #/missions) -->
 
-      <!-- + to expand, metadata/secondary items -->
-        <!-- TODO -->
-      <input type="submit" value="Submit">
-    </form>
+          <!-- -------------------------- -->
+          <hr><h3><u>Admin Functions</u></h3>
+          <!-- -------------------------- -->
+          <button class="btn btn-primary" style="color: blue;" id="export-button" onclick="JSONExport()">Export Acquistion List</button>
+          <button class="btn btn-primary" style="color: green;" id="import-button">Import Acquistion List</button>
+          <input type="file" id="import-file" style="display:none">
 
-
-    <hr>
-    <h1><u>Current Mission List</u></h1>
-
-    <hr>
-    <h3><u>Admin Functions</u></h3>
-    <button class="btn btn-primary" style="color: blue;" id="export-button" onclick="JSONExport()">Export Acquistion List</button>
-    <button class="btn btn-primary" style="color: green;" id="import-button">Import Acquistion List</button>
-    <input type="file" id="import-file" style="display:none">
-
-    <br><br>
-    <button onclick="clearLocalStorage()" style="background-color: red; color: white;">Clear Local Storage</button>
-
-  <!-- NEW CODE HERE -->
-
-<!-- Container end -->
-    </div>
-  </div>
-</div>
+          <br><br>
+          <button onclick="clearLocalStorage()" style="background-color: red; color: white;">Clear Local Storage</button>
+        </div>
+      </div>
+    </div><!-- Container end -->
 
     <div id='stars'></div>
     <div id='stars2'></div>
@@ -270,8 +252,29 @@
     window.SE_Data_References = parsedData;
 
     // Generate <select> options for formAcquisitionItem
-    function pageSetupFormCreateItemSelectList(){
-      //CODE HERE
+      function pageSetupFormCreateItemSelectList() {
+      const selectElement = document.getElementById("formAcquisitionItem");
+
+      Object.keys(SE_Data_References.Contract["Acquisition Request Item"]).forEach(category => {
+        // Add category as non-selectable header
+        const categoryOption = document.createElement("option");
+        categoryOption.value = category;
+        categoryOption.disabled = true;
+        categoryOption.textContent = `--- ${category} ---`;
+        selectElement.appendChild(categoryOption);
+
+        // Add items under the category
+        const items = SE_Data_References.Contract["Acquisition Request Item"][category];
+        Object.keys(items).forEach(item => {
+          if (items[item] !== null) {
+            const itemOption = document.createElement("option");
+            const itemCategory = category === "Components" ? "" : category === "Ingots" ? "Ingot" : "Ore";
+            itemOption.value = `${items[item]} ${itemCategory}`;
+            itemOption.textContent = `${items[item]} ${itemCategory}`;
+            selectElement.appendChild(itemOption);
+          }
+        });
+      });
     }
     pageSetupFormCreateItemSelectList();
 
