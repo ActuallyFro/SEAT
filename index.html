@@ -271,10 +271,10 @@
 
     //General Updating Function
     //-~-~-~-~-~-~-~-~-~-~-~
-    function reloadTableData() {
-      document.getElementById('TableName').innerHTML = window.SJFI_data.name; //defaults to object-defined name
-      document.getElementById('TableMessage').innerHTML = window.SJFI_data.message; //defaults to object-defined message
-    }
+    // function reloadTableData() {
+    //   document.getElementById('TableName').innerHTML = window.SJFI_data.name; //defaults to object-defined name
+    //   document.getElementById('TableMessage').innerHTML = window.SJFI_data.message; //defaults to object-defined message
+    // }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //----------------------------------------------------------------------
@@ -289,8 +289,8 @@
       }       
 
       //I.b. Automatic -- via keyboard input/change of fields
-      document.getElementById('formExName').addEventListener('input', function() {storeFormData();}); //Cannot run from <HEAD!>
-      document.getElementById('formExMessage').addEventListener('input', function() {storeFormData();});//SAME! --^
+      // document.getElementById('formExName').addEventListener('input', function() {storeFormData();}); //Cannot run from <HEAD!>
+      // document.getElementById('formExMessage').addEventListener('input', function() {storeFormData();});//SAME! --^
 
     //--------------------------------------
     //II. Load Form content on Page Referesh
@@ -356,9 +356,7 @@
     //------------------------
     //III. Default Loads
     //------------------------
-    
-    //THESE CONFLICT! ---v
-    reloadTableData(); //On page load this runs (so the default data is shown)
+    // reloadTableData(); //On page load this runs (so the default data is shown)
     loadFormData();
 
     //Import Button Listener
