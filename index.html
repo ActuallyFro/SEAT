@@ -94,8 +94,9 @@
       <!-- Mandatory Form Items -->
         <!-- Acquisition item (from `"Contract"."Acquisition Request Item".(...) and amount`)-->
         <label for="formAcquisitionItem">Acquisition Item:</label>
-        <input type="text" id="formAcquisitionItem" name="formAcquisitionItem" oninput="storeFormData()"><br><br>
-
+        <!-- <input type="text" id="formAcquisitionItem" name="formAcquisitionItem" oninput="storeFormData()"><br><br> -->
+        <select id="formAcquisitionItem" name="formAcquisitionItem" onchange="storeFormData()"></select>
+        
         <label for="formAmount">Amount:</label>
         <input type="number" id="formAmount" name="formAmount" oninput="storeFormData()"><br><br>
 
