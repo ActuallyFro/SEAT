@@ -67,7 +67,10 @@
     <div id="container">
       <div id="row">
         <div class="col-md-12">
-  <!-- TEMP CODE 1 - Import/Export-->
+          <!-- Centered Title (LARGER than <h1>) for SEAT -->
+          <h1 style="text-align: center; font-size: 3em;"><u>SEAT: Space Engineers Acquisition Tool</u></h1>
+
+  <!-- TEMP CODE 1 - Import/Export
     <table border="1">
       <tr>
         <th>Key</th>
@@ -81,27 +84,44 @@
         <td>message</td>
         <td id="TableMessage"></td>
       </tr>
-    </table>
+    </table> -->
 
-    <hr>
-    <button class="btn btn-primary" style="color: blue;" id="export-button" onclick="JSONExport()">Export Current Table</button>
-    <button class="btn btn-primary" style="color: green;" id="import-button">Import New Table</button> <!-- Note it's done via listener vs. direct function call!  -->
-    <input type="file" id="import-file" style="display:none">
 
   <!-- TEMP CODE 2 - LocalStorage -->
     <hr>
+    <h1><u>Add Mission</u></h1>
     <form>
-    <label for="formExName">Name:</label>
-      <input type="text" id="formExName" name="formExName" oninput="storeFormData()"><br><br>
+      <!-- Mandatory Form Items -->
+        <!-- Acquisition item (from `"Contract"."Acquisition Request Item".(...) and amount`)-->
+        <label for="formAcquisitionItem">Acquisition Item:</label>
+        <input type="text" id="formAcquisitionItem" name="formAcquisitionItem" oninput="storeFormData()"><br><br>
 
-      <label for="formExMessage">Message:</label><br>
-      <textarea id="formExMessage" name="formExMessage" rows="4" cols="50" oninput="storeFormData()"></textarea><br><br>
+        <label for="formAmount">Amount:</label>
+        <input type="number" id="formAmount" name="formAmount" oninput="storeFormData()"><br><br>
 
+      <!-- Old Example fields: -->
+        <!-- <label for="formExName">Name:</label>
+        <input type="text" id="formExName" name="formExName" oninput="storeFormData()"><br><br>
+        <label for="formExMessage">Message:</label><br>
+        <textarea id="formExMessage" name="formExMessage" rows="4" cols="50" oninput="storeFormData()"></textarea><br><br> -->
+
+      <!-- + to expand, metadata/secondary items -->
+        <!-- TODO -->
       <input type="submit" value="Submit">
     </form>
 
+
     <hr>
-    <button onclick="clearLocalStorage()">Clear Local Storage</button>
+    <h1><u>Current Mission List</u></h1>
+
+    <hr>
+    <h3><u>Admin Functions</u></h3>
+    <button class="btn btn-primary" style="color: blue;" id="export-button" onclick="JSONExport()">Export Acquistion List</button>
+    <button class="btn btn-primary" style="color: green;" id="import-button">Import Acquistion List</button>
+    <input type="file" id="import-file" style="display:none">
+
+    <br><br>
+    <button onclick="clearLocalStorage()" style="background-color: red; color: white;">Clear Local Storage</button>
 
   <!-- NEW CODE HERE -->
 
@@ -124,6 +144,130 @@
       name: "A Default Name",
       message: "This data is the default message"
     };
+
+    const jsonDataString = `{
+                            "Contract": {
+                                "Amount": "Amount",
+                                "Acquisition Request Item": {
+                                  "Ores": {
+                                    "Iron": "Iron",
+                                    "Nickel": "Nickel",
+                                    "Silicon": "Silicon",
+                                    "Cobalt": "Cobalt",
+                                    "Magnesium": "Magnesium",
+                                    "Silver": "Silver",
+                                    "Gold": "Gold",
+                                    "Platinum": "Platinum",
+                                    "Uranium": "Uranium",
+                                    "Ice (disabled)": "Ice (disabled)",
+                                    "Stone (disabled)": "Stone (disabled)"
+                                  },
+                                  "Ingots": {
+                                    "Iron": "Iron",
+                                    "Nickel": "Nickel",
+                                    "Silicon": "Silicon",
+                                    "Cobalt": "Cobalt",
+                                    "Magnesium": "Magnesium",
+                                    "Silver": "Silver",
+                                    "Gold": "Gold",
+                                    "Platinum": "Platinum",
+                                    "Uranium": "Uranium",
+                                    "O2 Gas (disabled)": null,
+                                    "H2 Gas (disabled)": null,
+                                    "l (disabled)": null
+                                  },
+                                  "Components": {
+                                    "Bulletproof Glass": "Bulletproof Glass",
+                                    "Computer Computer": "Computer Computer",
+                                    "Construction Comp.": "Construction Comp.",
+                                    "Detector Components": "Detector Components",
+                                    "Display": "Display",
+                                    "Explosives": "Explosives",
+                                    "Girder": "Girder",
+                                    "Gravity Comp.": "Gravity Comp.",
+                                    "Interior Plate": "Interior Plate",
+                                    "Large Steel Tube Steel Tube": "Large Steel Tube Steel Tube",
+                                    "Medical Components": "Medical Components",
+                                    "Metal Grid": "Metal Grid",
+                                    "Motor": "Motor",
+                                    "Power Cell": "Power Cell",
+                                    "Radio-comm Comp.": "Radio-comm Comp.",
+                                    "Reactor Comp.": "Reactor Comp.",
+                                    "Small Steel": "Small Steel",
+                                    "Solar Cell": "Solar Cell",
+                                    "Steel Plate": "Steel Plate",
+                                    "Superconductor": "Superconductor",
+                                    "Thruster Components": "Thruster Components"
+                                  }
+                                }
+                              },
+                              "Metadata": {
+                                "Planet": {
+                                  "{empty}": "{empty}",
+                                  "Earth": "Earth",
+                                  "Mars": "Mars",
+                                  "Moon": "Moon",
+                                  "Europa": "Europa",
+                                  "Titan": "Titan",
+                                  "Triton": "Triton",
+                                  "Alien": "Alien",
+                                  "Other/Custom": "Other/Custom"
+                                },
+                                "Factions": {
+                                  "{empty}": "{empty}",
+                                  "First Name": {
+                                    "Revolutionary (RV)": "RV",
+                                    "Sacred (SA)": "SA",
+                                    "Secret (SC)": "SC",
+                                    "Supreme (SM)": "SM",
+                                    "Sovereign (SO)": "SO",
+                                    "Specialized (SP)": "SP",
+                                    "Star (ST)": "ST",
+                                    "The First (TF)": "TF",
+                                    "Unyielding (UD)": "UD",
+                                    "United (UN)": "UN",
+                                    "Universal (UV)": "UV"
+                                  },
+                                  "Second Name": {
+                                    "[B] Artisans (AT)": "AT",
+                                    "[B] Construction Guild (CG)": "CG",
+                                    "[B] Constructors (CS)": "CS",
+                                    "[B] Engineering (EG)": "EG",
+                                    "[B] Heavy Industry (HI)": "HI",
+                                    "[B] Industry (IN)": "IN",
+                                    "[B] Inventors (IV)": "IV",
+                                    "[B] Manufacturers (MA)": "MA",
+                                    "[B] Makers (MK)": "MK",
+                                    "[B] Shipbuilding (SB)": "SB",
+                                    "[B] Welders (WE)": "WE",
+                                    "[M] Drilling Consortium (DC)": "DC",
+                                    "[M] Drillers (DR)": "DR",
+                                    "[M] Excavators (EX)": "EX",
+                                    "[M] Miners Guild (MG)": "MG",
+                                    "[M] Minerals (MN)": "MN",
+                                    "[M] Prospectors (PR)": "PR",
+                                    "[M] Sappers (SR)": "SR",
+                                    "[T] Alliance (AL)": "AL",
+                                    "[T] Conglomerate (CM)": "CM",
+                                    "[T] Commerce (CO)": "CO",
+                                    "[T] Cartel (CT)": "CT",
+                                    "[T] Dealers (DE)": "DE",
+                                    "[T] Dwellers (DW)": "DW",
+                                    "[T] Hauling Services (HS)": "HS",
+                                    "[T] Merchants (MC)": "MC",
+                                    "[T] Shipping (SH)": "SH",
+                                    "[T] Settlers (SL)": "SL",
+                                    "[T] Technologies (TC)": "TC",
+                                    "[T] Traffickers (TK)": "TK",
+                                    "[T] Traders (TR)": "TR"
+                                  }
+                                }
+                              }
+                            }`;
+
+    const parsedData = JSON.parse(jsonDataString);
+    window.SE_Data_References = parsedData;
+    // console.log(SE_Data_References.Contract);
 
     //General Updating Function
     //-~-~-~-~-~-~-~-~-~-~-~
@@ -258,7 +402,7 @@
       * Uranium
       * O2 Gas (disabled)
       * H2 Gas (disabled)
-      * Gravel (disabled)
+      * l (disabled)
     * Components
       * Bulletproof Glass
       * Computer Computer
