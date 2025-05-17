@@ -139,6 +139,49 @@ tr:hover {
   background-color: rgba(70, 70, 70, 0.5);
 }
 
+/* Table styles */
+.missions-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.missions-table th, .missions-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+}
+
+.missions-table th {
+  background-color: rgba(30, 30, 30, 0.7);
+  font-weight: bold;
+}
+
+.missions-table tr:nth-child(even) {
+  background-color: rgba(50, 50, 50, 0.3);
+}
+
+.missions-table tr:hover {
+  background-color: rgba(70, 70, 70, 0.5);
+}
+
+/* Sortable headers */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.sortable:hover {
+  background-color: rgba(60, 60, 60, 0.7);
+}
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 14px;
+}
+
 /* Button styling */
 button {
   background-color: #4CAF50;
@@ -216,6 +259,104 @@ button.danger:hover {
   color: #4b6cb7;
   background-color: #0a0a0a;
   padding: 8px 12px;
+}
+
+/* Tooltip styling */
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  width: 280px;
+  background-color: #333;
+  color: #fff;
+  text-align: left;
+  border-radius: 6px;
+  padding: 10px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 14px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+  border: 1px solid #555;
+}
+
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Create the tooltip arrow */
+.tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+/* For mobile - show on tap */
+@media (max-width: 768px) {
+  .tooltip-container .tooltip-text {
+    width: 220px;
+  }
+}
+
+/* Collapsible panel styles */
+.collapsible-section {
+  margin-bottom: 20px;
+}
+
+.collapsible-header {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #444;
+  border-bottom: none;
+  transition: background-color 0.3s;
+}
+
+.collapsible-header:hover {
+  background-color: rgba(30, 30, 30, 0.7);
+}
+
+.collapsible-header h1 {
+  margin: 0;
+  display: inline-block;
+}
+
+.collapsible-header .toggle-icon {
+  font-size: 24px;
+  font-weight: bold;
+  transition: transform 0.3s;
+}
+
+.collapsible-content {
+  transition: max-height 0.4s ease-in-out;
+  overflow: hidden;
+  max-height: 1000px; /* Large enough to contain content */
+}
+
+.collapsible-content.collapsed {
+  max-height: 0;
+  overflow: hidden;
+}
+
+.collapsible-section.collapsed .toggle-icon {
+  transform: rotate(-90deg);
 }
 
 /* Responsive adjustments */

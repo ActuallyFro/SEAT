@@ -47,6 +47,9 @@ function setupEventListeners() {
   
   // Clear storage button
   document.getElementById('clear-storage').addEventListener('click', clearLocalStorage);
+  
+  // Set up collapsible sections
+  setupCollapsibleSections();
 }
 
 // Generate <select> options for formAcquisitionItem
@@ -67,9 +70,9 @@ function pageSetupFormCreateItemSelectList() {
     Object.keys(items).forEach(item => {
       if (items[item] !== null) {
         const itemOption = document.createElement("option");
-        const itemCategory = category === "Components" ? "" : category === "Ingots" ? "Ingot" : "Ore";
-        itemOption.value = `${items[item]} ${itemCategory}`;
-        itemOption.textContent = `${items[item]} ${itemCategory}`;
+        // Don't add suffix for any category
+        itemOption.value = `${items[item]}`;
+        itemOption.textContent = `${items[item]}`;
         selectElement.appendChild(itemOption);
       }
     });
@@ -109,6 +112,37 @@ function pageSetupFactionFirstNameSelectList() {
 
 // Generate <select> options for Faction Second Name dropdown
 function pageSetupFactionSecondNameSelectList() {
+  const secondNameLabel = document.querySelector('label[for="formSecondName"]');
+  
+  // Add tooltip to the label
+  if (secondNameLabel) {
+    // Create wrapper with tooltip
+    const tooltipContainer = document.createElement('div');
+    tooltipContainer.className = 'tooltip-container';
+    
+    // Clone the existing label text into the container
+    tooltipContainer.innerHTML = secondNameLabel.innerHTML;
+    
+    // Add the tooltip
+    const tooltip = document.createElement('span');
+    tooltip.className = 'tooltip-text';
+    tooltip.innerHTML = `
+      <strong>Faction Type Guide:</strong><br>
+      <br>
+      <strong>[B]</strong> - Builder/Industry focused factions<br>
+      <strong>[M]</strong> - Mining/Resource focused factions<br>
+      <strong>[T]</strong> - Trading/Commerce focused factions<br>
+      <br>
+      Select a faction type that matches your mission context.
+    `;
+    
+    tooltipContainer.appendChild(tooltip);
+    
+    // Replace the label content with our tooltip container
+    secondNameLabel.innerHTML = '';
+    secondNameLabel.appendChild(tooltipContainer);
+  }
+  
   const selectElement = document.getElementById("formSecondName");
   selectElement.innerHTML = ''; // Clear existing options
 
@@ -131,7 +165,7 @@ function initializeFormDropdowns() {
   
   // Set today's date as default
   const today = new Date();
-  const formattedDate = today.toISOString().substr(0, 10); // Format: YYYY-MM-DD
+  const formattedDate = today.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
   document.getElementById('formDate').value = formattedDate;
   
   // Setup search functionality
@@ -144,19 +178,96 @@ function setupItemSearch() {
   const searchInput = document.getElementById('itemSearch');
   const selectElement = document.getElementById('formAcquisitionItem');
   
+  // Clear previous options and regenerate full list
+  function resetOptions() {
+    // Store the current selection if any
+    const currentSelection = selectElement.value;
+    
+    // Clear and regenerate the dropdown
+    selectElement.innerHTML = '';
+    
+    Object.keys(window.SE_Data_References.Contract["Acquisition Request Item"]).forEach(category => {
+      // Add category as non-selectable header
+      const categoryOption = document.createElement("option");
+      categoryOption.value = category;
+      categoryOption.disabled = true;
+      categoryOption.textContent = `--- ${category} ---`;
+      selectElement.appendChild(categoryOption);
+
+      // Add items under the category
+      const items = window.SE_Data_References.Contract["Acquisition Request Item"][category];
+      Object.keys(items).forEach(item => {
+        if (items[item] !== null) {
+          const itemOption = document.createElement("option");
+          // Don't add category suffix to item name
+          itemOption.value = `${items[item]}`;
+          itemOption.textContent = `${items[item]}`;
+          selectElement.appendChild(itemOption);
+        }
+      });
+    });
+    
+    // Restore selection if possible
+    if (currentSelection) {
+      for (const option of selectElement.options) {
+        if (option.value === currentSelection) {
+          option.selected = true;
+          break;
+        }
+      }
+    }
+  }
+  
   searchInput.addEventListener('input', function() {
     const searchTerm = this.value.toLowerCase();
-    const options = selectElement.querySelectorAll('option');
     
-    for (const option of options) {
-      if (option.disabled) continue; // Skip category headers
+    if (!searchTerm) {
+      resetOptions();
+      return;
+    }
+    
+    // Clear current options
+    selectElement.innerHTML = '';
+    
+    // Filter items from all categories
+    let foundItems = false;
+    Object.keys(window.SE_Data_References.Contract["Acquisition Request Item"]).forEach(category => {
+      const items = window.SE_Data_References.Contract["Acquisition Request Item"][category];
+      const matchingItems = [];
       
-      const optionText = option.textContent.toLowerCase();
-      if (optionText.includes(searchTerm)) {
-        option.style.display = '';
-      } else {
-        option.style.display = 'none';
+      // Find matching items in this category
+      Object.keys(items).forEach(item => {
+        if (items[item] !== null && item.toLowerCase().includes(searchTerm)) {
+          matchingItems.push(item);
+        }
+      });
+      
+      // Add category header and matching items if any found
+      if (matchingItems.length > 0) {
+        const categoryOption = document.createElement("option");
+        categoryOption.value = category;
+        categoryOption.disabled = true;
+        categoryOption.textContent = `--- ${category} ---`;
+        selectElement.appendChild(categoryOption);
+        
+        matchingItems.forEach(item => {
+          const itemOption = document.createElement("option");
+          // Don't add suffix for any category
+          itemOption.value = `${items[item]}`;
+          itemOption.textContent = `${items[item]}`;
+          selectElement.appendChild(itemOption);
+        });
+        
+        foundItems = true;
       }
+    });
+    
+    // If no items found, add a message
+    if (!foundItems) {
+      const noResultsOption = document.createElement("option");
+      noResultsOption.disabled = true;
+      noResultsOption.textContent = "No matching items found";
+      selectElement.appendChild(noResultsOption);
     }
   });
 }
@@ -190,6 +301,7 @@ function setupMissionSearch() {
 function storeFormData() {
   const itemName = document.getElementById("formAcquisitionItem").value;
   const amount = document.getElementById("formAmount").value;
+  const payment = document.getElementById("formPayment").value;
   const firstName = document.getElementById("formFirstName").value;
   const secondName = document.getElementById("formSecondName").value;
   const planet = document.getElementById("formPlanet").value;
@@ -204,13 +316,14 @@ function storeFormData() {
   // Create mission object with all details
   const mission = {
     amount: parseInt(amount),
+    payment: payment ? parseInt(payment) : 0,
     firstName: firstName,
     secondName: secondName,
     planet: planet,
     dateAccepted: dateAccepted,
     // Add the full names for display
-    firstNameFull: document.querySelector(`#formFirstName option[value="${firstName}"]`).getAttribute('data-fullname'),
-    secondNameFull: document.querySelector(`#formSecondName option[value="${secondName}"]`).getAttribute('data-fullname')
+    firstNameFull: firstName ? document.querySelector(`#formFirstName option[value="${firstName}"]`)?.getAttribute('data-fullname') || "" : "",
+    secondNameFull: secondName ? document.querySelector(`#formSecondName option[value="${secondName}"]`)?.getAttribute('data-fullname') || "" : ""
   };
 
   // Ensure there's an array for the item name and add the mission
@@ -223,13 +336,14 @@ function storeFormData() {
   // Reset the form
   document.getElementById("formAcquisitionItem").selectedIndex = 0;
   document.getElementById("formAmount").value = "";
+  document.getElementById("formPayment").value = "";
   document.getElementById("formFirstName").selectedIndex = 0;
   document.getElementById("formSecondName").selectedIndex = 0;
   document.getElementById("formPlanet").selectedIndex = 0;
   
   // Keep the current date
   const today = new Date();
-  const formattedDate = today.toISOString().substr(0, 10);
+  const formattedDate = today.toISOString().slice(0, 16);
   document.getElementById('formDate').value = formattedDate;
   
   // Update the table and save data
@@ -266,13 +380,28 @@ function displayCurrentMissions() {
 
   const table = document.createElement("table");
   table.classList.add("missions-table");
+  table.id = "missions-table";
 
-  const headers = ["Item", "Amount", "Faction", "Planet", "Date", "Actions"];
+  const headers = ["Item", "Amount", "Payment (€)", "Faction", "Planet", "Date", "Actions"];
   const headerRow = document.createElement("tr");
   
-  headers.forEach(headerText => {
+  headers.forEach((headerText, index) => {
     const header = document.createElement("th");
-    header.textContent = headerText;
+    
+    // Don't make the Actions column sortable
+    if (headerText !== "Actions") {
+      header.classList.add("sortable");
+      header.dataset.sortIndex = index;
+      header.innerHTML = `${headerText} <span class="sort-icon">↕</span>`;
+      
+      // Add click event for sorting
+      header.addEventListener('click', function() {
+        sortTable(index);
+      });
+    } else {
+      header.textContent = headerText;
+    }
+    
     headerRow.appendChild(header);
   });
   
@@ -286,20 +415,29 @@ function displayCurrentMissions() {
       const row = document.createElement("tr");
       
       // Format the faction name nicely
-      const factionName = mission.firstNameFull 
-        ? `${mission.firstNameFull} ${mission.secondNameFull}` 
-        : `${mission.firstName || ""} ${mission.secondName || ""}`;
+      let factionName = "";
+      if (mission.firstName && mission.secondName) {
+        // Extract the type code from second name (e.g., [B], [M], [T])
+        const typeMatch = mission.secondNameFull ? mission.secondNameFull.match(/^\[([BMT])\]/) : null;
+        const typeCode = typeMatch ? typeMatch[1] : "";
+        
+        // Format as FFSS - First name Second name [Type]
+        factionName = `${mission.firstName}${mission.secondName} - ${mission.firstNameFull} ${mission.secondNameFull.replace(/^\[[BMT]\]\s*/, "")} [${typeCode}]`;
+      } else {
+        factionName = `${mission.firstName || ""} ${mission.secondName || ""}`;
+      }
       
       // Format the date nicely
       const dateObject = mission.dateAccepted ? new Date(mission.dateAccepted) : null;
       const formattedDate = dateObject 
-        ? dateObject.toLocaleDateString() 
+        ? `${dateObject.toLocaleDateString()}` 
         : mission.dateAccepted || '';
 
       // Add mission data to the row
       const data = [
         itemName,
         mission.amount || '',
+        mission.payment ? `${mission.payment} €` : '',
         factionName,
         mission.planet || '',
         formattedDate,
@@ -405,3 +543,78 @@ window.importJSONObjects = importJSONObjects;
 window.clearLocalStorage = clearLocalStorage;
 window.SJFI_data = SJFI_data;
 window.SJFI_storageKey = SJFI_storageKey;
+
+// Table sorting functionality
+let currentSortColumn = -1;
+let currentSortDirection = 'asc';
+
+function sortTable(columnIndex) {
+  const table = document.getElementById("missions-table");
+  if (!table) return;
+  
+  const rows = Array.from(table.querySelectorAll("tr")).slice(1); // Skip header row
+  const headerCells = table.querySelectorAll("th");
+  
+  // Toggle sort direction if clicking the same column
+  if (currentSortColumn === columnIndex) {
+    currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSortDirection = 'asc';
+    
+    // Reset all sort indicators
+    headerCells.forEach(cell => {
+      if (cell.classList.contains('sortable')) {
+        cell.querySelector('.sort-icon').textContent = '↕';
+      }
+    });
+  }
+  
+  // Set current sort column
+  currentSortColumn = columnIndex;
+  
+  // Update sort indicator
+  const headerCell = headerCells[columnIndex];
+  if (headerCell.classList.contains('sortable')) {
+    headerCell.querySelector('.sort-icon').textContent = currentSortDirection === 'asc' ? '↑' : '↓';
+  }
+  
+  // Sort rows
+  rows.sort((a, b) => {
+    let aValue = a.cells[columnIndex].textContent.trim();
+    let bValue = b.cells[columnIndex].textContent.trim();
+    
+    // Handle numeric values for Amount and Payment columns
+    if (columnIndex === 1 || columnIndex === 2) {
+      aValue = parseInt(aValue) || 0;
+      bValue = parseInt(bValue) || 0;
+      return currentSortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+    
+    // Handle date values
+    if (columnIndex === 5) {
+      if (!aValue) return currentSortDirection === 'asc' ? -1 : 1;
+      if (!bValue) return currentSortDirection === 'asc' ? 1 : -1;
+      
+      const aDate = new Date(aValue);
+      const bDate = new Date(bValue);
+      
+      return currentSortDirection === 'asc' ? aDate - bDate : bDate - aDate;
+    }
+    
+    // Default string comparison
+    return currentSortDirection === 'asc' 
+      ? aValue.localeCompare(bValue) 
+      : bValue.localeCompare(aValue);
+  });
+  
+  // Reorder table rows
+  const tbody = table.querySelector("tbody") || table;
+  
+  // Remove all existing rows except the header
+  while (tbody.childNodes.length > 1) {
+    tbody.removeChild(tbody.lastChild);
+  }
+  
+  // Add sorted rows
+  rows.forEach(row => tbody.appendChild(row));
+}

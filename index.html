@@ -53,6 +53,18 @@
             <div class="form-row">
               <div class="form-col">
                 <div class="form-group">
+                  <label for="formPayment">Payment (€):</label>
+                  <input type="number" id="formPayment" name="formPayment" min="0" placeholder="Optional">
+                </div>
+              </div>
+              <div class="form-col">
+                <!-- Empty column for spacing -->
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-col">
+                <div class="form-group">
                   <label for="formFirstName">Faction First Name:</label>
                   <select id="formFirstName" name="formFirstName"></select>
                 </div>
@@ -75,7 +87,7 @@
               <div class="form-col">
                 <div class="form-group">
                   <label for="formDate">Date Accepted:</label>
-                  <input type="date" id="formDate" name="formDate">
+                  <input type="datetime-local" id="formDate" name="formDate" class="date-picker">
                 </div>
               </div>
             </div>
