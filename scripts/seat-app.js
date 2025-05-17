@@ -448,13 +448,15 @@ function storeFormData() {
 
   window.SJFI_data.missions[itemName].push(mission);
 
-  // Reset the form
+  // Reset part of the form but preserve faction names
   document.getElementById("formAcquisitionItem").selectedIndex = 0;
   document.getElementById("formAmount").value = "";
   document.getElementById("formPayment").value = "";
-  document.getElementById("formFirstName").selectedIndex = 0;
-  document.getElementById("formSecondName").selectedIndex = 0;
   document.getElementById("formPlanet").selectedIndex = 0;
+  
+  // Don't reset faction names - keep them as they are
+  // document.getElementById("formFirstName").selectedIndex = 0;
+  // document.getElementById("formSecondName").selectedIndex = 0;
   
   // Keep the current date
   const today = new Date();
@@ -466,7 +468,7 @@ function storeFormData() {
   storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
   
   // Show confirmation
-  alert("Mission added successfully!");
+  alert("Mission added successfully! Faction selection preserved for your next entry.");
 }
 
 // Load data from localStorage
