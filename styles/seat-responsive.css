@@ -4,6 +4,7 @@ html {
   color: #fff;
   overflow-x: hidden;
   overflow-y: auto;
+  background-color: #000;
 }
 
 body {
@@ -82,6 +83,11 @@ select, input[type="text"], input[type="number"], input[type="date"] {
   width: 100%;
   box-sizing: border-box;
   max-width: 100%;
+  
+  /* Ensure date input matches the style of other inputs */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 select {
@@ -96,6 +102,33 @@ select {
 
 select[size] {
   height: auto;
+}
+
+/* Custom date picker styling */
+input[type="date"] {
+  position: relative;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 30px;
+}
+
+/* Override browser-specific styling */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  cursor: pointer;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-outer-spin-button,
+input[type="date"]::-webkit-clear-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 input[type="submit"] {
@@ -381,6 +414,10 @@ button.danger:hover {
 
 /* Responsive adjustments */
 @media screen and (max-width: 768px) {
+  html, body {
+    font-size: 200%; /* Double the base font size for mobile */
+  }
+  
   #container {
     padding: 10px;
   }
@@ -391,20 +428,34 @@ button.danger:hover {
   
   th, td {
     padding: 8px 10px;
-    font-size: 0.9em;
+    font-size: 1em;
   }
   
   h1 {
-    font-size: 2em;
+    font-size: 1.8em;
   }
   
   h3 {
-    font-size: 1.2em;
+    font-size: 1.4em;
   }
 
   .table-responsive {
     overflow-x: auto;
     display: block;
     width: 100%;
+  }
+  
+  input, select, button {
+    font-size: 1em;
+    height: auto;
+    padding: 12px 16px;
+  }
+  
+  .collapsible-header {
+    padding: 15px;
+  }
+  
+  .collapsible-header .toggle-icon {
+    font-size: 32px;
   }
 }

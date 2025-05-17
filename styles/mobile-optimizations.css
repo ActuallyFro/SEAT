@@ -1,0 +1,43 @@
+/* Additional mobile optimizations */
+
+/* Fix for Android bottom navigation bar color */
+@media screen and (max-width: 768px) {
+  html {
+    background-color: #000 !important;
+  }
+  
+  body {
+    background-color: #000 !important;
+  }
+  
+  /* Increase tap target sizes for better touch interaction */
+  button, 
+  input[type="submit"], 
+  select,
+  input[type="date"],
+  .collapsible-header {
+    min-height: 48px;
+  }
+  
+  /* Improve spacing between form elements */
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  /* Make sure labels are visible enough */
+  label {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+  }
+  
+  /* Adjust padding for the bottom navigation bar */
+  #container {
+    padding-bottom: 40px;
+  }
+  
+  /* Make sure the collapsible icons are easily tappable */
+  .toggle-icon {
+    min-width: 44px;
+    text-align: center;
+  }
+}

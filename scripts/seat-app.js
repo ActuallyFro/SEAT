@@ -280,7 +280,7 @@ function initializeFormDropdowns() {
   
   // Set today's date as default
   const today = new Date();
-  const formattedDate = today.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
+  const formattedDate = today.toISOString().slice(0, 10); // Format: YYYY-MM-DD (date only, no time)
   document.getElementById('formDate').value = formattedDate;
   
   // Setup search functionality
@@ -458,7 +458,7 @@ function storeFormData() {
   
   // Keep the current date
   const today = new Date();
-  const formattedDate = today.toISOString().slice(0, 16);
+  const formattedDate = today.toISOString().slice(0, 10); // Format: YYYY-MM-DD (date only, no time)
   document.getElementById('formDate').value = formattedDate;
   
   // Update the table and save data
@@ -536,8 +536,12 @@ function displayCurrentMissions() {
         const typeMatch = mission.secondNameFull ? mission.secondNameFull.match(/^\[([BMT])\]/) : null;
         const typeCode = typeMatch ? typeMatch[1] : "";
         
+        // Get clean names without parentheses parts
+        const cleanFirstName = mission.firstNameFull ? mission.firstNameFull.replace(/\s*\([^)]+\)/g, "") : "";
+        const cleanSecondName = mission.secondNameFull ? mission.secondNameFull.replace(/^\[[BMT]\]\s*/, "").replace(/\s*\([^)]+\)/g, "") : "";
+        
         // Format as FFSS - First name Second name [Type]
-        factionName = `${mission.firstName}${mission.secondName} - ${mission.firstNameFull} ${mission.secondNameFull.replace(/^\[[BMT]\]\s*/, "")} [${typeCode}]`;
+        factionName = `${mission.firstName}${mission.secondName} - ${cleanFirstName} ${cleanSecondName} [${typeCode}]`;
       } else {
         factionName = `${mission.firstName || ""} ${mission.secondName || ""}`;
       }
