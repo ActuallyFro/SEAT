@@ -48,7 +48,7 @@ function setupEventListeners() {
   // Clear storage button
   document.getElementById('clear-storage').addEventListener('click', clearLocalStorage);
   
-  // Set up collapsible sections
+  // Set up collapsible sections after all other UI elements are ready
   setupCollapsibleSections();
 }
 
@@ -81,7 +81,7 @@ function convertToCollapsible(elementId, title) {
   // Create toggle icon
   const toggleIcon = document.createElement('span');
   toggleIcon.className = 'toggle-icon';
-  toggleIcon.textContent = '−'; // Minus sign (collapsed)
+  toggleIcon.textContent = '−'; // Minus sign (expanded state)
   
   // Append elements
   header.appendChild(titleElement);
@@ -91,30 +91,52 @@ function convertToCollapsible(elementId, title) {
   const content = document.createElement('div');
   content.className = 'collapsible-content';
   
-  // Move the original element into the content container
-  const parent = element.parentNode;
-  parent.removeChild(element);
-  content.appendChild(element);
+  // Find the original h1 and hr elements to replace them
+  let targetHr = null;
+  let targetH1 = null;
+  
+  // Find the heading that matches the title
+  const headings = document.querySelectorAll('h1');
+  for (const h1 of headings) {
+    const underline = h1.querySelector('u');
+    if (underline && underline.textContent === title) {
+      targetH1 = h1;
+      // Try to find the hr that precedes this h1
+      let prev = h1.previousElementSibling;
+      if (prev && prev.tagName === 'HR') {
+        targetHr = prev;
+      }
+      break;
+    }
+  }
+  
+  // If we found the elements to replace
+  if (targetH1 && targetHr) {
+    const parent = targetH1.parentNode;
+    
+    // Insert our new components
+    parent.insertBefore(wrapper, targetHr);
+    
+    // Remove the old elements
+    parent.removeChild(targetHr);
+    parent.removeChild(targetH1);
+    
+    // Move the form into the content container
+    parent.removeChild(element);
+    content.appendChild(element);
+  } else {
+    // Fallback if we can't find the elements
+    const parent = element.parentNode;
+    parent.insertBefore(wrapper, element);
+    parent.removeChild(element);
+    content.appendChild(element);
+  }
   
   // Add everything to the wrapper
   wrapper.appendChild(header);
   wrapper.appendChild(content);
   
-  // Replace the original hr+h1 heading
-  const headingElements = document.querySelectorAll(`h1 u`);
-  for (const heading of headingElements) {
-    if (heading.textContent === title) {
-      const headingParent = heading.closest('h1');
-      const hr = headingParent.previousElementSibling;
-      if (hr && hr.tagName === 'HR') {
-        const container = hr.parentNode;
-        container.insertBefore(wrapper, hr);
-        container.removeChild(hr);
-        container.removeChild(headingParent);
-        break;
-      }
-    }
-  }
+  // Now the wrapper is ready to be inserted into the page
   
   // Add click event to toggle
   header.addEventListener('click', function() {
@@ -132,7 +154,7 @@ function convertToCollapsible(elementId, title) {
     }
   });
   
-  // Initially expanded
+  // Initially expanded by default
   content.classList.remove('collapsed');
   wrapper.classList.remove('collapsed');
   toggleIcon.textContent = '−';
