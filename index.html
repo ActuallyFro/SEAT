@@ -6,8 +6,10 @@
     <script type="text/javascript" src="scripts/SJFI/lib-localstorage.js"></script>
     <script type="text/javascript" src="scripts/SJFI/lib-JSON-ImpExp.js"></script>
     <script type="text/javascript" src="scripts/SEAT-Data.js"></script>
+    <script type="text/javascript" src="scripts/seat-app.js"></script>
 
     <link rel="stylesheet" type="text/css" href="styles/seat.css">
+    <link rel="stylesheet" type="text/css" href="styles/seat-responsive.css">
   </head>
   
   <body translate="no"style="background-color: black; color: #FFF;">
@@ -23,40 +25,85 @@
           <!-- ------------------ -->
           <hr><h1><u>Add Mission</u></h1>
           <!-- ------------------ -->
-          <form>
-            <!-- Mandatory Form Items -->
-              <!-- Acquisition item (from `"Contract"."Acquisition Request Item".(...) and amount`)-->
-              <label for="formAcquisitionItem">Acquisition Item:</label>
-              <select id="formAcquisitionItem" name="formAcquisitionItem"></select>
-              
-              <label for="formAmount">Amount:</label>
-              <input type="number" id="formAmount" name="formAmount"><br><br>
-
-            <!-- Old Example fields: -->
-              <!-- <label for="formExName">Name:</label>
-              <input type="text" id="formExName" name="formExName" oninput="storeFormData()"><br><br>
-              <label for="formExMessage">Message:</label><br>
-              <textarea id="formExMessage" name="formExMessage" rows="4" cols="50" oninput="storeFormData()"></textarea><br><br> -->
-
-            <!-- + to expand, metadata/secondary items -->
-              <!-- TODO -->
-            <input type="submit" value="Submit" onclick="storeFormData(); reloadTableData();">
+          <form id="missionForm">
+            <!-- Acquisition Item Search & Selection -->
+            <div class="form-group">
+              <label for="itemSearch">Search Acquisition Items:</label>
+              <div class="search-container">
+                <input type="text" id="itemSearch" class="search-input" placeholder="Search for items...">
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-col">
+                <!-- Acquisition item (from `"Contract"."Acquisition Request Item".(...) and amount`)-->
+                <div class="form-group">
+                  <label for="formAcquisitionItem">Acquisition Item:</label>
+                  <select id="formAcquisitionItem" name="formAcquisitionItem"></select>
+                </div>
+              </div>
+              <div class="form-col">
+                <div class="form-group">
+                  <label for="formAmount">Amount:</label>
+                  <input type="number" id="formAmount" name="formAmount" min="1" required>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-col">
+                <div class="form-group">
+                  <label for="formFirstName">Faction First Name:</label>
+                  <select id="formFirstName" name="formFirstName"></select>
+                </div>
+              </div>
+              <div class="form-col">
+                <div class="form-group">
+                  <label for="formSecondName">Faction Second Name:</label>
+                  <select id="formSecondName" name="formSecondName"></select>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-col">
+                <div class="form-group">
+                  <label for="formPlanet">Planet/Moon:</label>
+                  <select id="formPlanet" name="formPlanet"></select>
+                </div>
+              </div>
+              <div class="form-col">
+                <div class="form-group">
+                  <label for="formDate">Date Accepted:</label>
+                  <input type="date" id="formDate" name="formDate">
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <input type="submit" value="Add Mission">
+            </div>
           </form>
 
           <!-- ------------------------------- -->
           <hr><h1><u>Current Mission List</u></h1>
           <!-- ------------------------------- -->
           <!-- Table that is created from the list of Acqusition Entries (e.g., a MAP of the deliverable, with given #/missions) -->
-          <div class="current-mission-list" id="current-mission-list"></div>
+          <div class="form-group">
+            <input type="text" id="missionSearch" class="search-input" placeholder="Search missions...">
+          </div>
+          <div class="table-responsive">
+            <div class="current-mission-list" id="current-mission-list"></div>
+          </div>
           <!-- -------------------------- -->
           <hr><h3><u>Admin Functions</u></h3>
           <!-- -------------------------- -->
-          <button class="btn btn-primary" style="color: blue;" id="export-button" onclick="JSONExport();">Export Acquistion List</button>
-          <button class="btn btn-primary" style="color: green;" id="import-button">Import Acquistion List</button>
-          <input type="file" id="import-file" style="display:none">
-
-          <br><br>
-          <button onclick="clearLocalStorage()" style="background-color: red; color: white;">Clear Local Storage</button>
+          <div class="admin-buttons">
+            <button id="export-button">Export Acquisition List</button>
+            <button id="import-button">Import Acquisition List</button>
+            <input type="file" id="import-file" style="display:none">
+            <button id="clear-storage" class="danger">Clear All Data</button>
+          </div>
         </div>
       </div>
     </div><!-- Container end -->
@@ -66,206 +113,6 @@
     <div id='stars3'></div>
   </body>
 
-  <script>
-    //------------------------
-    //0. DEFAULT VARS
-    window.SJFI_storageKey = 'SEAT-DATA';    
 
-    window.SJFI_data = {
-      missions: {}
-    };
-
-    //Note: jsonDataString is in `SEAT-Data.js`
-    const parsedData = JSON.parse(jsonDataString);
-    window.SE_Data_References = parsedData;
-
-    // Generate <select> options for formAcquisitionItem
-      function pageSetupFormCreateItemSelectList() {
-      const selectElement = document.getElementById("formAcquisitionItem");
-
-      Object.keys(SE_Data_References.Contract["Acquisition Request Item"]).forEach(category => {
-        // Add category as non-selectable header
-        const categoryOption = document.createElement("option");
-        categoryOption.value = category;
-        categoryOption.disabled = true;
-        categoryOption.textContent = `--- ${category} ---`;
-        selectElement.appendChild(categoryOption);
-
-        // Add items under the category
-        const items = SE_Data_References.Contract["Acquisition Request Item"][category];
-        Object.keys(items).forEach(item => {
-          if (items[item] !== null) {
-            const itemOption = document.createElement("option");
-            const itemCategory = category === "Components" ? "" : category === "Ingots" ? "Ingot" : "Ore";
-            itemOption.value = `${items[item]} ${itemCategory}`;
-            itemOption.textContent = `${items[item]} ${itemCategory}`;
-            selectElement.appendChild(itemOption);
-          }
-        });
-      });
-    }
-    pageSetupFormCreateItemSelectList();
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //----------------------------------------------------------------------
-    //I. Store Form content into Local Storage (via SJFI lib) on Form Change
-    //----------------------------------------------------------------------
-    function storeFormData() {
-      event.preventDefault(); // Prevent the default form submission behavior -- AK PAGE REFRESH
-
-      const itemName = document.getElementById("formAcquisitionItem").value;
-      const amount = document.getElementById("formAmount").value;
-      const firstName = ""; // Add the logic to get the value from the form or other source
-      const secondName = ""; // Add the logic to get the value from the form or other source
-      const planet = ""; // Add the logic to get the value from the form or other source
-      const dateAccepted = ""; // Add the logic to get the value from the form or other source
-
-      const mission = {
-        amount: parseInt(amount),
-        firstName: firstName,
-        secondName: secondName,
-        planet: planet,
-        dateAccepted: dateAccepted,
-      };
-
-      // Ensure there's an array for the item name and add the mission
-      if (!window.SJFI_data.missions[itemName]) {
-        window.SJFI_data.missions[itemName] = [];
-      }
-      // ChatGPT says this is a common pattern...:`window.SJFI_data.missions[itemName] = window.SJFI_data.missions[itemName] || [];` ... :-/
-
-      window.SJFI_data.missions[itemName].push(mission);
-
-      reloadTableData();
-
-      storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
-
-      // console.log("(KEY:'", window.SJFI_storageKey ,"') This is what was stored:", window.SJFI_data);
-    }
-
-
-    //--------------------------------------
-    //II. Load Form content on Page Referesh
-    //--------------------------------------
-    function loadFormData() {
-      let formData = loadJSONObjectsFromKey(SJFI_storageKey);
-
-      if (formData !== null) {
-        window.SJFI_data = formData;
-      }
-
-      // debug print
-      // console.log("[loadFormData()](KEY:'", window.SJFI_storageKey ,"') This is what was loaded:", window.SJFI_data);
-    }
-
-    function displayCurrentMissions() {
-      const currentMissionListDiv = document.getElementById("current-mission-list");
-      currentMissionListDiv.innerHTML = ""; // Clear existing content
-
-      const table = document.createElement("table");
-      table.border = "1";
-
-      const headers = ["Item", "Amount", "FirstName", "SecondName", "Planet", "DateAccepted"];
-      const headerRow = document.createElement("tr");
-      headers.forEach(headerText => {
-        const header = document.createElement("th");
-        header.textContent = headerText;
-        headerRow.appendChild(header);
-      });
-      table.appendChild(headerRow);
-
-      // Add table rows with mission data to `current-mission-list`
-      Object.keys(window.SJFI_data.missions).forEach(itemName => {
-        const missionsForItem = window.SJFI_data.missions[itemName];
-        missionsForItem.forEach(mission => {
-          const row = document.createElement("tr");
-
-          // Add mission data to the row
-          const data = [
-                        itemName,
-                        mission.amount ?? '',
-                        mission.firstName ?? '',
-                        mission.secondName ?? '',
-                        mission.planet ?? '',
-                        mission.dateAccepted ?? '',
-                      ];
-          data.forEach(cellData => {
-            const cell = document.createElement("td");
-            cell.textContent = cellData;
-            row.appendChild(cell);
-          });
-
-          table.appendChild(row);
-        });
-      });
-
-      currentMissionListDiv.appendChild(table);
-
-      // debug print array to console
-      // console.log(window.SJFI_data.missions);
-    }
-
-
-    //------------------------
-    //III. Clear Local Storage
-    //------------------------
-    function clearLocalStorage() {
-      clearLocalStorageALLKeys();
-      location.reload();
-    }
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // ---------------------------
-    // I. JSON Export
-    // ---------------------------
-    JSONExport = function() {
-      SJFIJSONExport(window.SJFI_data,"Table-Data.json");
-    }
-
-    // ---------------------------
-    // II. JSON Import
-    // ---------------------------
-    window.importJSONObjects = async function(event) {
-      const importedData = await SJFIJSONImport(event.target.files[0]);
-
-      if (importedData) {
-        window.SJFI_data = importedData;
-        reloadTableData();
- 
-        document.getElementById('formExName').value = window.SJFI_data.name;
-        document.getElementById('formExMessage').value = window.SJFI_data.message;
-        storeFormData();
-      }
-    }
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    //------------------------
-    //III. Default Loads
-    //------------------------
-   
-    function reloadTableData() {
-      displayCurrentMissions();
-    }
-
-    function firstPageLoad() {
-      loadFormData();
-      reloadTableData();
-    }
     
-    window.onload = firstPageLoad;
-
-    // console.log("(KEY:'", window.SJFI_storageKey ,"') This is what was loaded:", window.SJFI_data);
-
-    //Import Button Listener
-    //-~-~-~-~-~-~-~-~-~-~-~
-    const importFileInput = document.getElementById('import-file');
-    importFileInput.addEventListener('change', window.importJSONObjects);
-
-    const importButton = document.getElementById('import-button');
-      importButton.addEventListener('click', () => {
-      importFileInput.click();
-    });
-
-  </script>
 </html>

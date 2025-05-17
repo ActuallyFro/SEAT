@@ -51,6 +51,11 @@
             "Steel Plate": "Steel Plate",
             "Superconductor": "Superconductor",
             "Thruster Components": "Thruster Components"
+          },
+          "Tools": {
+            "Canvas": "Canvas",
+            "H2 Bottle": "H2 Bottle",
+            "O2 Bottle": "O2 Bottle"
           }
         }
       },
