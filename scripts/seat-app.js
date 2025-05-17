@@ -52,6 +52,92 @@ function setupEventListeners() {
   setupCollapsibleSections();
 }
 
+// Setup collapsible sections
+function setupCollapsibleSections() {
+  // Add collapsible functionality to the "Add Mission" section
+  convertToCollapsible('missionForm', 'Add Mission');
+  
+  // You can add more sections as needed
+  // convertToCollapsible('anotherSectionId', 'Section Title');
+}
+
+// Convert a section to a collapsible panel
+function convertToCollapsible(elementId, title) {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+  
+  // Create wrapper
+  const wrapper = document.createElement('div');
+  wrapper.className = 'collapsible-section';
+  
+  // Create header
+  const header = document.createElement('div');
+  header.className = 'collapsible-header';
+  
+  // Create title element
+  const titleElement = document.createElement('h1');
+  titleElement.innerHTML = `<u>${title}</u>`;
+  
+  // Create toggle icon
+  const toggleIcon = document.createElement('span');
+  toggleIcon.className = 'toggle-icon';
+  toggleIcon.textContent = '−'; // Minus sign (collapsed)
+  
+  // Append elements
+  header.appendChild(titleElement);
+  header.appendChild(toggleIcon);
+  
+  // Create content container
+  const content = document.createElement('div');
+  content.className = 'collapsible-content';
+  
+  // Move the original element into the content container
+  const parent = element.parentNode;
+  parent.removeChild(element);
+  content.appendChild(element);
+  
+  // Add everything to the wrapper
+  wrapper.appendChild(header);
+  wrapper.appendChild(content);
+  
+  // Replace the original hr+h1 heading
+  const headingElements = document.querySelectorAll(`h1 u`);
+  for (const heading of headingElements) {
+    if (heading.textContent === title) {
+      const headingParent = heading.closest('h1');
+      const hr = headingParent.previousElementSibling;
+      if (hr && hr.tagName === 'HR') {
+        const container = hr.parentNode;
+        container.insertBefore(wrapper, hr);
+        container.removeChild(hr);
+        container.removeChild(headingParent);
+        break;
+      }
+    }
+  }
+  
+  // Add click event to toggle
+  header.addEventListener('click', function() {
+    const isCollapsed = content.classList.contains('collapsed');
+    if (isCollapsed) {
+      // Expand
+      content.classList.remove('collapsed');
+      wrapper.classList.remove('collapsed');
+      toggleIcon.textContent = '−'; // Minus sign
+    } else {
+      // Collapse
+      content.classList.add('collapsed');
+      wrapper.classList.add('collapsed');
+      toggleIcon.textContent = '+'; // Plus sign
+    }
+  });
+  
+  // Initially expanded
+  content.classList.remove('collapsed');
+  wrapper.classList.remove('collapsed');
+  toggleIcon.textContent = '−';
+}
+
 // Generate <select> options for formAcquisitionItem
 function pageSetupFormCreateItemSelectList() {
   const selectElement = document.getElementById("formAcquisitionItem");
