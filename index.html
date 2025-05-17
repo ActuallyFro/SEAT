@@ -101,20 +101,24 @@
           <hr><h1><u>Current Mission List</u></h1>
           <!-- ------------------------------- -->
           <!-- Table that is created from the list of Acqusition Entries (e.g., a MAP of the deliverable, with given #/missions) -->
-          <div class="form-group">
-            <input type="text" id="missionSearch" class="search-input" placeholder="Search missions...">
-          </div>
-          <div class="table-responsive">
-            <div class="current-mission-list" id="current-mission-list"></div>
+          <div id="missionListContainer">
+            <div class="form-group">
+              <input type="text" id="missionSearch" class="search-input" placeholder="Search missions...">
+            </div>
+            <div class="table-responsive">
+              <div class="current-mission-list" id="current-mission-list"></div>
+            </div>
           </div>
           <!-- -------------------------- -->
           <hr><h3><u>Admin Functions</u></h3>
           <!-- -------------------------- -->
-          <div class="admin-buttons">
-            <button id="export-button">Export Acquisition List</button>
-            <button id="import-button">Import Acquisition List</button>
-            <input type="file" id="import-file" style="display:none">
-            <button id="clear-storage" class="danger">Clear All Data</button>
+          <div id="adminFunctionsContainer">
+            <div class="admin-buttons">
+              <button id="export-button">Export Acquisition List</button>
+              <button id="import-button">Import Acquisition List</button>
+              <input type="file" id="import-file" style="display:none">
+              <button id="clear-storage" class="danger">Clear All Data</button>
+            </div>
           </div>
         </div>
       </div>

@@ -317,6 +317,8 @@ button.danger:hover {
 /* Collapsible panel styles */
 .collapsible-section {
   margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .collapsible-header {
@@ -330,36 +332,51 @@ button.danger:hover {
   border: 1px solid #444;
   border-bottom: none;
   transition: background-color 0.3s;
+  user-select: none; /* Prevent text selection when clicking */
 }
 
 .collapsible-header:hover {
   background-color: rgba(30, 30, 30, 0.7);
 }
 
-.collapsible-header h1 {
+.collapsible-header h1, 
+.collapsible-header h3 {
   margin: 0;
   display: inline-block;
+  font-size: 1.5em;
 }
 
 .collapsible-header .toggle-icon {
   font-size: 24px;
   font-weight: bold;
   transition: transform 0.3s;
+  margin-left: 10px;
 }
 
 .collapsible-content {
-  transition: max-height 0.4s ease-in-out;
+  transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
   overflow: hidden;
-  max-height: 1000px; /* Large enough to contain content */
+  max-height: 3000px; /* Large enough to contain all potential content */
+  background-color: transparent;
+  opacity: 1;
 }
 
 .collapsible-content.collapsed {
   max-height: 0;
+  opacity: 0;
   overflow: hidden;
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 
 .collapsible-section.collapsed .toggle-icon {
-  transform: rotate(-90deg);
+  transform: rotate(90deg);
+}
+
+/* Make sure tooltips appear above collapsible sections */
+.tooltip-text {
+  z-index: 1000;
 }
 
 /* Responsive adjustments */

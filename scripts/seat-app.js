@@ -57,8 +57,11 @@ function setupCollapsibleSections() {
   // Add collapsible functionality to the "Add Mission" section
   convertToCollapsible('missionForm', 'Add Mission');
   
-  // You can add more sections as needed
-  // convertToCollapsible('anotherSectionId', 'Section Title');
+  // Add collapsible functionality to the "Current Mission List" section
+  convertToCollapsible('missionListContainer', 'Current Mission List');
+  
+  // Add collapsible functionality to the "Admin Functions" section
+  convertToCollapsible('adminFunctionsContainer', 'Admin Functions');
 }
 
 // Convert a section to a collapsible panel
@@ -74,8 +77,11 @@ function convertToCollapsible(elementId, title) {
   const header = document.createElement('div');
   header.className = 'collapsible-header';
   
+  // Determine if this is an h1 or h3 section title
+  const isAdminSection = (title === "Admin Functions");
+  
   // Create title element
-  const titleElement = document.createElement('h1');
+  const titleElement = document.createElement(isAdminSection ? 'h3' : 'h1');
   titleElement.innerHTML = `<u>${title}</u>`;
   
   // Create toggle icon
@@ -91,18 +97,19 @@ function convertToCollapsible(elementId, title) {
   const content = document.createElement('div');
   content.className = 'collapsible-content';
   
-  // Find the original h1 and hr elements to replace them
+  // Find the original heading and hr elements to replace them
   let targetHr = null;
-  let targetH1 = null;
+  let targetHeading = null;
   
   // Find the heading that matches the title
-  const headings = document.querySelectorAll('h1');
-  for (const h1 of headings) {
-    const underline = h1.querySelector('u');
+  const headingSelector = isAdminSection ? 'h3' : 'h1';
+  const headings = document.querySelectorAll(headingSelector);
+  for (const heading of headings) {
+    const underline = heading.querySelector('u');
     if (underline && underline.textContent === title) {
-      targetH1 = h1;
-      // Try to find the hr that precedes this h1
-      let prev = h1.previousElementSibling;
+      targetHeading = heading;
+      // Try to find the hr that precedes this heading
+      let prev = heading.previousElementSibling;
       if (prev && prev.tagName === 'HR') {
         targetHr = prev;
       }
@@ -111,15 +118,15 @@ function convertToCollapsible(elementId, title) {
   }
   
   // If we found the elements to replace
-  if (targetH1 && targetHr) {
-    const parent = targetH1.parentNode;
+  if (targetHeading && targetHr) {
+    const parent = targetHeading.parentNode;
     
     // Insert our new components
     parent.insertBefore(wrapper, targetHr);
     
     // Remove the old elements
     parent.removeChild(targetHr);
-    parent.removeChild(targetH1);
+    parent.removeChild(targetHeading);
     
     // Move the form into the content container
     parent.removeChild(element);
