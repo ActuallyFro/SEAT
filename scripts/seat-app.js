@@ -215,6 +215,16 @@ function pageSetupFactionFirstNameSelectList() {
   const selectElement = document.getElementById("formFirstName");
   selectElement.innerHTML = ''; // Clear existing options
 
+  const factionFirstNameLabel = document.querySelector("label[for='formFirstName']");
+
+  if (factionFirstNameLabel && !factionFirstNameLabel.querySelector(".tooltip-text")) {
+    factionFirstNameLabel.classList.add("tooltip-container");
+    const tooltip = document.createElement("span");
+    tooltip.classList.add("tooltip-text");
+    tooltip.textContent = "The first part of the Faction's name (e.g., 'Revolutionary' in 'Revolutionary Artisans'). Helps categorize factions.";
+    factionFirstNameLabel.appendChild(tooltip);
+  }
+
   const firstNames = window.SE_Data_References.Metadata.Factions["First Name"];
   Object.keys(firstNames).forEach(name => {
     const option = document.createElement("option");
@@ -415,60 +425,62 @@ function setupMissionSearch() {
 // Save form data
 function storeFormData() {
   const itemName = document.getElementById("formAcquisitionItem").value;
-  const amount = document.getElementById("formAmount").value;
-  const payment = document.getElementById("formPayment").value;
+  const amountValue = document.getElementById("formAmount").value;
+  const paymentValue = document.getElementById("formPayment").value;
   const firstName = document.getElementById("formFirstName").value;
   const secondName = document.getElementById("formSecondName").value;
   const planet = document.getElementById("formPlanet").value;
   const dateAccepted = document.getElementById("formDate").value;
-  
-  // Form validation - only acquisition item and amount are mandatory
-  if (!itemName || !amount) {
-    alert("Please select an acquisition item and specify the amount");
+  const description = document.getElementById("formDescription").value;
+
+  // Form validation
+  if (!itemName || !amountValue) {
+    alert("Please select an acquisition item and specify the amount."); // This alert is for validation failure
+    return;
+  }
+
+  const numericAmount = parseInt(amountValue);
+  if (isNaN(numericAmount) || numericAmount <= 0) {
+    alert("Please enter a valid positive number for the amount.");
+    return;
+  }
+
+  const numericPayment = paymentValue ? parseInt(paymentValue) : 0;
+  if (isNaN(numericPayment) || numericPayment < 0) {
+    alert("Please enter a valid non-negative number for payment, or leave it blank for 0.");
     return;
   }
 
   // Create mission object with all details
   const mission = {
-    amount: parseInt(amount),
-    payment: payment ? parseInt(payment) : 0,
+    amount: numericAmount,
+    payment: numericPayment,
     firstName: firstName,
     secondName: secondName,
     planet: planet,
     dateAccepted: dateAccepted,
-    // Add the full names for display
+    description: description,
     firstNameFull: firstName ? document.querySelector(`#formFirstName option[value="${firstName}"]`)?.getAttribute('data-fullname') || "" : "",
     secondNameFull: secondName ? document.querySelector(`#formSecondName option[value="${secondName}"]`)?.getAttribute('data-fullname') || "" : ""
   };
 
-  // Ensure there's an array for the item name and add the mission
   if (!window.SJFI_data.missions[itemName]) {
     window.SJFI_data.missions[itemName] = [];
   }
-
   window.SJFI_data.missions[itemName].push(mission);
 
-  // Reset part of the form but preserve faction names
   document.getElementById("formAcquisitionItem").selectedIndex = 0;
   document.getElementById("formAmount").value = "";
   document.getElementById("formPayment").value = "";
-  document.getElementById("formPlanet").selectedIndex = 0;
-  
-  // Don't reset faction names - keep them as they are
-  // document.getElementById("formFirstName").selectedIndex = 0;
-  // document.getElementById("formSecondName").selectedIndex = 0;
-  
-  // Keep the current date
+  // Planet selection is intentionally retained
+  document.getElementById("formDescription").value = "";
+
   const today = new Date();
-  const formattedDate = today.toISOString().slice(0, 10); // Format: YYYY-MM-DD (date only, no time)
+  const formattedDate = today.toISOString().slice(0, 10);
   document.getElementById('formDate').value = formattedDate;
   
-  // Update the table and save data
   reloadTableData();
   storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
-  
-  // Show confirmation
-  alert("Mission added successfully! Faction selection preserved for your next entry.");
 }
 
 // Load data from localStorage
@@ -499,14 +511,15 @@ function displayCurrentMissions() {
   table.classList.add("missions-table");
   table.id = "missions-table";
 
-  const headers = ["Item", "Amount", "Payment (€)", "Faction", "Planet", "Date", "Actions"];
+  // Add Info column between Date and Actions
+  const headers = ["Item", "Amount", "Payment (€)", "Faction", "Planet", "Date", "Info", "Actions"];
   const headerRow = document.createElement("tr");
   
   headers.forEach((headerText, index) => {
     const header = document.createElement("th");
     
-    // Don't make the Actions column sortable
-    if (headerText !== "Actions") {
+    // Don't make the Info and Actions columns sortable
+    if (headerText !== "Actions" && headerText !== "Info") {
       header.classList.add("sortable");
       header.dataset.sortIndex = index;
       header.innerHTML = `${headerText} <span class="sort-icon">↕</span>`;
@@ -517,6 +530,10 @@ function displayCurrentMissions() {
       });
     } else {
       header.textContent = headerText;
+      if (headerText === "Info") {
+        header.classList.add("info-header");
+        header.style.width = "40px"; // Still keeping fixed width for the column
+      }
     }
     
     headerRow.appendChild(header);
@@ -569,6 +586,22 @@ function displayCurrentMissions() {
         cell.textContent = cellData;
         row.appendChild(cell);
       });
+      
+      // Add info icon cell with tooltip if description exists
+      const infoCell = document.createElement("td");
+      infoCell.classList.add("info-cell");
+      
+      if (mission.description) {
+        infoCell.classList.add("tooltip-container");
+        infoCell.textContent = "🛈"; // Info icon
+        infoCell.style.cursor = "help";
+        
+        const tooltip = document.createElement("span");
+        tooltip.classList.add("tooltip-text");
+        tooltip.textContent = mission.description;
+        infoCell.appendChild(tooltip);
+      }
+      row.appendChild(infoCell);
       
       // Add action buttons (delete)
       const actionsCell = document.createElement("td");
