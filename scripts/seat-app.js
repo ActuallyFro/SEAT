@@ -190,7 +190,18 @@ function pageSetupFormCreateItemSelectList() {
         const itemOption = document.createElement("option");
         // Don't add suffix for any category
         itemOption.value = `${items[item]}`;
-        itemOption.textContent = `${items[item]}`;
+        
+        // Store the category as data attribute
+        itemOption.setAttribute('data-category', category);
+        
+        // Show category for items that could appear in multiple categories (like Iron)
+        if ((category === "Ores" || category === "Ingots") && 
+            items[item].indexOf(category.slice(0, -1)) === -1) {
+          itemOption.textContent = `${items[item]} ${category.slice(0, -1)}`;
+        } else {
+          itemOption.textContent = `${items[item]}`;
+        }
+        
         selectElement.appendChild(itemOption);
       }
     });
@@ -502,6 +513,9 @@ function storeFormData() {
     // Reset submit button text
     const submitButton = document.querySelector('#missionForm input[type="submit"]');
     submitButton.value = "Add Mission";
+    
+    // Hide edit mode indicator
+    document.getElementById('edit-mode-indicator').style.display = 'none';
   } else {
     // Adding a new mission
     if (!window.SJFI_data.missions[itemName]) {
@@ -742,6 +756,12 @@ function displayCurrentMissions() {
       actionsCell.appendChild(removeButton);
       row.appendChild(actionsCell);
 
+      // Add double-click event to the row for quick editing
+      row.addEventListener('dblclick', function() {
+        loadMissionToForm(itemName, mission, index);
+      });
+      
+      // Add table row to the table
       table.appendChild(row);
     });
   });
@@ -874,6 +894,9 @@ function loadMissionToForm(itemName, mission, index) {
   // Change submit button text to indicate editing
   const submitButton = document.querySelector('#missionForm input[type="submit"]');
   submitButton.value = "Update Mission";
+  
+  // Show edit mode indicator
+  document.getElementById('edit-mode-indicator').style.display = '';
   
   // Expand form section if collapsed
   const formSection = document.querySelector('.collapsible-section');
