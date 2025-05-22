@@ -248,6 +248,36 @@ button.danger:hover {
   background-color: #d32f2f;
 }
 
+/* New blue Remove button */
+button.remove-btn {
+  background-color: #2196F3;
+}
+
+button.remove-btn:hover {
+  background-color: #0b7dda;
+}
+
+/* Edit button */
+button.edit-btn {
+  background-color: #FF9800;
+}
+
+button.edit-btn:hover {
+  background-color: #e68a00;
+}
+
+/* Loaded checkbox button */
+button.loaded-btn {
+  background-color: #555;
+  color: white;
+  min-width: 30px;
+  padding: 3px 5px;
+}
+
+button.loaded-btn.checked {
+  background-color: #4CAF50;
+}
+
 .admin-buttons {
   display: flex;
   gap: 10px;

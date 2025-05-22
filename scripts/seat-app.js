@@ -13,6 +13,9 @@ window.SE_Data_References = parsedData;
 
 // Event handler when the DOM is fully loaded
 window.onload = function() {
+  // Initialize editing state
+  window.currentlyEditingMission = null;
+  
   // Load data from local storage
   loadFormData();
   
@@ -460,15 +463,54 @@ function storeFormData() {
     planet: planet,
     dateAccepted: dateAccepted,
     description: description,
+    loaded: false, // Default to not loaded
     firstNameFull: firstName ? document.querySelector(`#formFirstName option[value="${firstName}"]`)?.getAttribute('data-fullname') || "" : "",
     secondNameFull: secondName ? document.querySelector(`#formSecondName option[value="${secondName}"]`)?.getAttribute('data-fullname') || "" : ""
   };
-
-  if (!window.SJFI_data.missions[itemName]) {
-    window.SJFI_data.missions[itemName] = [];
+  
+  // Check if we're editing an existing mission or adding a new one
+  if (window.currentlyEditingMission) {
+    const { itemName: oldItemName, index } = window.currentlyEditingMission;
+    
+    // Preserve the loaded status from the original mission
+    if (window.SJFI_data.missions[oldItemName] && 
+        window.SJFI_data.missions[oldItemName][index]) {
+      mission.loaded = window.SJFI_data.missions[oldItemName][index].loaded;
+    }
+    
+    // Remove the original mission
+    if (oldItemName === itemName) {
+      // Same item type, just update in place
+      window.SJFI_data.missions[oldItemName][index] = mission;
+    } else {
+      // Item type changed, remove from old array and add to new
+      window.SJFI_data.missions[oldItemName].splice(index, 1);
+      if (window.SJFI_data.missions[oldItemName].length === 0) {
+        delete window.SJFI_data.missions[oldItemName];
+      }
+      
+      // Add to new item type array
+      if (!window.SJFI_data.missions[itemName]) {
+        window.SJFI_data.missions[itemName] = [];
+      }
+      window.SJFI_data.missions[itemName].push(mission);
+    }
+    
+    // Clear editing state
+    window.currentlyEditingMission = null;
+    
+    // Reset submit button text
+    const submitButton = document.querySelector('#missionForm input[type="submit"]');
+    submitButton.value = "Add Mission";
+  } else {
+    // Adding a new mission
+    if (!window.SJFI_data.missions[itemName]) {
+      window.SJFI_data.missions[itemName] = [];
+    }
+    window.SJFI_data.missions[itemName].push(mission);
   }
-  window.SJFI_data.missions[itemName].push(mission);
 
+  // Reset form fields
   document.getElementById("formAcquisitionItem").selectedIndex = 0;
   document.getElementById("formAmount").value = "";
   document.getElementById("formPayment").value = "";
@@ -512,7 +554,7 @@ function displayCurrentMissions() {
   table.id = "missions-table";
 
   // Add Info column between Date and Actions
-  const headers = ["Item", "Amount", "Payment (€)", "Faction", "Planet", "Date", "Info", "Actions"];
+  const headers = ["Item", "Amount", "Payment (€)", "Faction", "Planet", "Date", "Info", "Loaded", "Actions"];
   const headerRow = document.createElement("tr");
   
   headers.forEach((headerText, index) => {
@@ -540,6 +582,29 @@ function displayCurrentMissions() {
   });
   
   table.appendChild(headerRow);
+
+  // Find the item's category to create a proper item display name
+  function getItemWithCategory(itemName) {
+    let itemFullName = itemName; // Default to just the item name
+    
+    // Search through all categories
+    Object.keys(window.SE_Data_References.Contract["Acquisition Request Item"]).forEach(category => {
+      const items = window.SE_Data_References.Contract["Acquisition Request Item"][category];
+      
+      // Check if this item exists in this category
+      Object.keys(items).forEach(item => {
+        if (items[item] === itemName) {
+          // For ores and ingots, append the category if not already in the name
+          if ((category === "Ores" || category === "Ingots") && !itemName.includes(category.slice(0, -1))) {
+            itemFullName = `${itemName} ${category.slice(0, -1)}`; // Remove the 's' from "Ores" or "Ingots"
+          }
+          // For Components, we leave as is since they already have descriptive names
+        }
+      });
+    });
+    
+    return itemFullName;
+  }
 
   // Add table rows with mission data
   Object.keys(window.SJFI_data.missions).forEach(itemName => {
@@ -571,9 +636,9 @@ function displayCurrentMissions() {
         ? `${dateObject.toLocaleDateString()}` 
         : mission.dateAccepted || '';
 
-      // Add mission data to the row
+      // Add mission data to the row with proper item name
       const data = [
-        itemName,
+        getItemWithCategory(itemName),
         mission.amount || '',
         mission.payment ? `${mission.payment} €` : '',
         factionName,
@@ -591,25 +656,79 @@ function displayCurrentMissions() {
       const infoCell = document.createElement("td");
       infoCell.classList.add("info-cell");
       
+      // Format date for tooltip
+      const dateFormatted = mission.dateAccepted ? 
+        `Date Accepted: ${new Date(mission.dateAccepted).toLocaleDateString()}` : '';
+      
+      // Create tooltip content - date first, then description if it exists
+      let tooltipContent = dateFormatted;
+      
       if (mission.description) {
+        // Add a line break between date and description if both exist
+        if (dateFormatted) {
+          tooltipContent += '\n\n';
+        }
+        tooltipContent += mission.description;
+      }
+      
+      // Only show icon if we have date or description
+      if (tooltipContent) {
         infoCell.classList.add("tooltip-container");
         infoCell.textContent = "🛈"; // Info icon
         infoCell.style.cursor = "help";
         
         const tooltip = document.createElement("span");
         tooltip.classList.add("tooltip-text");
-        tooltip.textContent = mission.description;
+        tooltip.style.whiteSpace = "pre-wrap"; // Preserve line breaks
+        tooltip.textContent = tooltipContent;
         infoCell.appendChild(tooltip);
       }
       row.appendChild(infoCell);
+
+      // Add loaded status toggle button
+      const loadedCell = document.createElement("td");
+      loadedCell.style.textAlign = "center";
       
-      // Add action buttons (delete)
+      const loadedButton = document.createElement("button");
+      loadedButton.classList.add("loaded-btn");
+      loadedButton.textContent = mission.loaded ? "✓" : "×";
+      
+      if (mission.loaded) {
+        loadedButton.classList.add("checked");
+      }
+      
+      loadedButton.onclick = function() {
+        // Toggle the loaded status
+        mission.loaded = !mission.loaded;
+        loadedButton.textContent = mission.loaded ? "✓" : "×";
+        loadedButton.classList.toggle("checked", mission.loaded);
+        
+        // Save the updated data
+        storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+      };
+      
+      loadedCell.appendChild(loadedButton);
+      row.appendChild(loadedCell);
+      
+      // Add action buttons (edit and remove)
       const actionsCell = document.createElement("td");
-      const deleteButton = document.createElement("button");
-      deleteButton.textContent = "Delete";
-      deleteButton.classList.add("danger");
-      deleteButton.onclick = function() {
-        if (confirm("Are you sure you want to delete this mission?")) {
+      
+      // Create edit button
+      const editButton = document.createElement("button");
+      editButton.textContent = "Edit";
+      editButton.classList.add("edit-btn");
+      editButton.onclick = function() {
+        // Load mission data into form for editing
+        loadMissionToForm(itemName, mission, index);
+      };
+      actionsCell.appendChild(editButton);
+      
+      // Create remove button
+      const removeButton = document.createElement("button");
+      removeButton.textContent = "Remove";
+      removeButton.classList.add("remove-btn"); // Changed from "danger" to "remove-btn"
+      removeButton.onclick = function() {
+        if (confirm("Are you sure you want to remove this mission?")) {
           missionsForItem.splice(index, 1);
           // If no more missions for this item, remove the item
           if (missionsForItem.length === 0) {
@@ -620,7 +739,7 @@ function displayCurrentMissions() {
         }
       };
       
-      actionsCell.appendChild(deleteButton);
+      actionsCell.appendChild(removeButton);
       row.appendChild(actionsCell);
 
       table.appendChild(row);
@@ -685,6 +804,82 @@ function clearLocalStorage() {
     window.SJFI_data = { missions: {} };
     reloadTableData();
     alert("All data cleared successfully!");
+  }
+}
+
+// Load mission data into form for editing
+function loadMissionToForm(itemName, mission, index) {
+  // Scroll to form section
+  document.querySelector('.collapsible-section').scrollIntoView({ behavior: 'smooth' });
+  
+  // Set mission currently being edited
+  window.currentlyEditingMission = {
+    itemName: itemName,
+    index: index
+  };
+  
+  // Populate form fields with mission data
+  const itemSelect = document.getElementById("formAcquisitionItem");
+  const options = itemSelect.options;
+  for (let i = 0; i < options.length; i++) {
+    if (options[i].value === itemName) {
+      itemSelect.selectedIndex = i;
+      break;
+    }
+  }
+  
+  document.getElementById("formAmount").value = mission.amount || "";
+  document.getElementById("formPayment").value = mission.payment || "";
+  
+  // Set faction names
+  if (mission.firstName) {
+    const firstNameSelect = document.getElementById("formFirstName");
+    for (let i = 0; i < firstNameSelect.options.length; i++) {
+      if (firstNameSelect.options[i].value === mission.firstName) {
+        firstNameSelect.selectedIndex = i;
+        break;
+      }
+    }
+  }
+  
+  if (mission.secondName) {
+    const secondNameSelect = document.getElementById("formSecondName");
+    for (let i = 0; i < secondNameSelect.options.length; i++) {
+      if (secondNameSelect.options[i].value === mission.secondName) {
+        secondNameSelect.selectedIndex = i;
+        break;
+      }
+    }
+  }
+  
+  // Set planet
+  if (mission.planet) {
+    const planetSelect = document.getElementById("formPlanet");
+    for (let i = 0; i < planetSelect.options.length; i++) {
+      if (planetSelect.options[i].value === mission.planet) {
+        planetSelect.selectedIndex = i;
+        break;
+      }
+    }
+  }
+  
+  // Set date
+  if (mission.dateAccepted) {
+    document.getElementById("formDate").value = mission.dateAccepted;
+  }
+  
+  // Set description
+  document.getElementById("formDescription").value = mission.description || "";
+  
+  // Change submit button text to indicate editing
+  const submitButton = document.querySelector('#missionForm input[type="submit"]');
+  submitButton.value = "Update Mission";
+  
+  // Expand form section if collapsed
+  const formSection = document.querySelector('.collapsible-section');
+  const formContent = formSection.querySelector('.collapsible-content');
+  if (formContent.classList.contains('collapsed')) {
+    formSection.querySelector('.collapsible-header').click();
   }
 }
 
