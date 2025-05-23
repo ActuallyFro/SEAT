@@ -54,6 +54,9 @@ function setupEventListeners() {
   // Clear storage button
   document.getElementById('clear-storage').addEventListener('click', clearLocalStorage);
   
+  // Cancel edit button
+  document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
+  
   // Set up collapsible sections after all other UI elements are ready
   setupCollapsibleSections();
 }
@@ -521,8 +524,9 @@ function storeFormData() {
     const submitButton = document.querySelector('#missionForm input[type="submit"]');
     submitButton.value = "Add Mission";
     
-    // Hide edit mode indicator
+    // Hide edit mode indicator and cancel button
     document.getElementById('edit-mode-indicator').style.display = 'none';
+    document.getElementById('cancel-edit-btn').style.display = 'none';
   } else {
     // Adding a new mission
     if (!window.SJFI_data.missions[itemName]) {
@@ -559,6 +563,16 @@ function loadFormData() {
 function displayCurrentMissions() {
   const currentMissionListDiv = document.getElementById("current-mission-list");
   currentMissionListDiv.innerHTML = ""; // Clear existing content
+  
+  // Clear existing LongPress instances
+  if (window.longPressInstances) {
+    window.longPressInstances.forEach(instance => {
+      if (instance.destroy) {
+        instance.destroy();
+      }
+    });
+    window.longPressInstances = [];
+  }
 
   // Check if there are any missions
   if (!window.SJFI_data.missions || Object.keys(window.SJFI_data.missions).length === 0) {
@@ -847,6 +861,26 @@ function clearLocalStorage() {
   }
 }
 
+// Function to cancel editing and reset form to add mode
+function cancelEdit() {
+  // Clear editing state
+  window.currentlyEditingMission = null;
+  
+  // Reset form
+  document.getElementById('missionForm').reset();
+  
+  // Reset submit button text
+  const submitButton = document.querySelector('#missionForm input[type="submit"]');
+  submitButton.value = "Add Mission";
+  
+  // Hide edit mode indicator and cancel button
+  document.getElementById('edit-mode-indicator').style.display = 'none';
+  document.getElementById('cancel-edit-btn').style.display = 'none';
+  
+  // Reload form dropdowns to ensure they're properly populated
+  initializeFormDropdowns();
+}
+
 // Load mission data into form for editing
 function loadMissionToForm(itemName, mission, index) {
   // Scroll to form section
@@ -918,6 +952,9 @@ function loadMissionToForm(itemName, mission, index) {
   // Show edit mode indicator
   document.getElementById('edit-mode-indicator').style.display = '';
   
+  // Show cancel button
+  document.getElementById('cancel-edit-btn').style.display = '';
+  
   // Expand form section if collapsed
   const formSection = document.querySelector('.collapsible-section');
   const formContent = formSection.querySelector('.collapsible-content');
@@ -935,6 +972,20 @@ window.importJSONObjects = importJSONObjects;
 window.clearLocalStorage = clearLocalStorage;
 window.SJFI_data = SJFI_data;
 window.SJFI_storageKey = SJFI_storageKey;
+
+// Function to update long press duration for all instances
+function updateLongPressDuration(newDuration) {
+  if (window.longPressInstances) {
+    window.longPressInstances.forEach(instance => {
+      if (instance.updateDuration) {
+        instance.updateDuration(newDuration);
+      }
+    });
+  }
+}
+
+// Export function for use by hamburger-menu.js
+window.updateLongPressDuration = updateLongPressDuration;
 
 // Table sorting functionality
 let currentSortColumn = -1;
