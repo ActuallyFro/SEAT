@@ -475,6 +475,8 @@ function storeFormData() {
     dateAccepted: dateAccepted,
     description: description,
     loaded: false, // Default to not loaded
+    // Store category information
+    itemCategory: document.querySelector(`#formAcquisitionItem option[value="${itemName}"]`)?.getAttribute('data-category') || "",
     firstNameFull: firstName ? document.querySelector(`#formFirstName option[value="${firstName}"]`)?.getAttribute('data-fullname') || "" : "",
     secondNameFull: secondName ? document.querySelector(`#formSecondName option[value="${secondName}"]`)?.getAttribute('data-fullname') || "" : ""
   };
@@ -558,7 +560,6 @@ function displayCurrentMissions() {
     const emptyMessage = document.createElement("p");
     emptyMessage.textContent = "No missions found. Add a mission using the form above.";
     emptyMessage.style.textAlign = "center";
-    emptyMessage.style.padding = "20px";
     currentMissionListDiv.appendChild(emptyMessage);
     return;
   }
@@ -598,10 +599,19 @@ function displayCurrentMissions() {
   table.appendChild(headerRow);
 
   // Find the item's category to create a proper item display name
-  function getItemWithCategory(itemName) {
+  function getItemWithCategory(itemName, itemCategory) {
+    // If we have the category stored, use it
+    if (itemCategory) {
+      if ((itemCategory === "Ores" || itemCategory === "Ingots") && 
+          !itemName.includes(itemCategory.slice(0, -1))) {
+        return `${itemName} ${itemCategory.slice(0, -1)}`;
+      }
+      return itemName;
+    }
+    
+    // Fallback - search through all categories
     let itemFullName = itemName; // Default to just the item name
     
-    // Search through all categories
     Object.keys(window.SE_Data_References.Contract["Acquisition Request Item"]).forEach(category => {
       const items = window.SE_Data_References.Contract["Acquisition Request Item"][category];
       
@@ -652,7 +662,7 @@ function displayCurrentMissions() {
 
       // Add mission data to the row with proper item name
       const data = [
-        getItemWithCategory(itemName),
+        getItemWithCategory(itemName, mission.itemCategory),
         mission.amount || '',
         mission.payment ? `${mission.payment} €` : '',
         factionName,
