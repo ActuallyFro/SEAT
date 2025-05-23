@@ -725,8 +725,9 @@ function displayCurrentMissions() {
       // Only show icon if we have date or description
       if (tooltipContent) {
         infoCell.classList.add("tooltip-container");
-        infoCell.textContent = "🛈"; // Info icon
+        infoCell.textContent = "ⓘ"; // Circled information source
         infoCell.style.cursor = "help";
+        infoCell.style.color = "#4CAF50"; // Green color to make it stand out
         
         const tooltip = document.createElement("span");
         tooltip.classList.add("tooltip-text");
