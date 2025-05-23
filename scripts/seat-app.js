@@ -588,7 +588,7 @@ function displayCurrentMissions() {
   table.id = "missions-table";
 
   // Add Info column between Date and Actions
-  const headers = ["Item", "Amount", "Payment (€)", "Faction", "Planet", "Info", "Loaded", "Actions"];
+  const headers = ["Item", "Amount", "Payment", "Faction", "Planet", "Info", "Loaded", "Actions"];
   const headerRow = document.createElement("tr");
   
   headers.forEach((headerText, index) => {
@@ -681,10 +681,16 @@ function displayCurrentMissions() {
       }
 
       // Add mission data to the row with proper item name
+      const formatNumber = (num) => {
+        // Remove all non-numeric characters, then add 1000-comma separation
+        const numeric = String(num).replace(/[^\d]/g, '');
+        return numeric ? Number(numeric).toLocaleString() : '';
+      };
+
       const data = [
         getItemWithCategory(itemName, mission.itemCategory),
-        mission.amount || '',
-        mission.payment ? `${mission.payment} €` : '',
+        formatNumber(mission.amount),
+        mission.payment ? formatNumber(mission.payment) : '',
         factionDisplay, // Use the new factionDisplay HTML string
         mission.planet || '',
       ];
