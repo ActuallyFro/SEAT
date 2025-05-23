@@ -639,21 +639,28 @@ function displayCurrentMissions() {
     missionsForItem.forEach((mission, index) => {
       const row = document.createElement("tr");
       
-      // Format the faction name nicely
-      let factionName = "";
-      if (mission.firstName && mission.secondName) {
-        // Get clean names without parentheses parts
-        const cleanFirstName = mission.firstNameFull ? mission.firstNameFull.replace(/\s*\([^)]+\)/g, "").trim() : "";
-        const cleanSecondName = mission.secondNameFull ? mission.secondNameFull.replace(/\s*\([^)]+\)/g, "").trim() : "";
+      // Format the faction name for display
+      let factionDisplay = "";
+      let factionCode = "";
+      if (mission.firstNameFull && mission.secondNameFull) {
+        const firstMatch = mission.firstNameFull.match(/\(([^)]+)\)/);
+        const secondMatch = mission.secondNameFull.match(/\(([^)]+)\)/);
+        const firstCode = firstMatch ? firstMatch[1] : "";
+        const secondCode = secondMatch ? secondMatch[1] : "";
+        factionCode = `${firstCode}${secondCode}`.substring(0, 4); // FFSS code
+
+        const cleanFirstName = mission.firstNameFull.replace(/\s*\([^)]+\)/g, "").trim();
+        const cleanSecondName = mission.secondNameFull.replace(/\s*\([^)]+\)/g, "").trim();
         
-        // Extract the type code - now from the end of the secondName
-        const typeMatch = cleanSecondName.match(/\[([BMT])\]$/);
-        const typeCode = typeMatch ? typeMatch[1] : "";
-        
-        // Format as just the clean names
-        factionName = `${cleanFirstName} ${cleanSecondName}`;
+        // Desktop: FFSS - Full First Name Full Second Name [Type]
+        // Mobile: FFSS
+        // The actual switch between mobile/desktop display will be handled by CSS
+        factionDisplay = `<span class="faction-full">${factionCode} - ${cleanFirstName} ${cleanSecondName}</span><span class="faction-code">${factionCode}</span>`;
       } else {
-        factionName = `${mission.firstName || ""} ${mission.secondName || ""}`;
+        // Fallback if full names are not available (e.g. older data)
+        factionDisplay = `${mission.firstName || ""} ${mission.secondName || ""}`;
+        factionCode = (mission.firstName || "").substring(0,2) + (mission.secondName || "").substring(0,2);
+        factionDisplay = `<span class="faction-full">${factionCode} - ${mission.firstName || ""} ${mission.secondName || ""}</span><span class="faction-code">${factionCode}</span>`;
       }
 
       // Add mission data to the row with proper item name
@@ -661,13 +668,17 @@ function displayCurrentMissions() {
         getItemWithCategory(itemName, mission.itemCategory),
         mission.amount || '',
         mission.payment ? `${mission.payment} €` : '',
-        factionName,
+        factionDisplay, // Use the new factionDisplay HTML string
         mission.planet || '',
       ];
       
-      data.forEach(cellData => {
+      data.forEach((cellData, cellIndex) => {
         const cell = document.createElement("td");
-        cell.textContent = cellData;
+        if (cellIndex === 3) { // Faction column
+          cell.innerHTML = cellData; // Set as HTML for the spans
+        } else {
+          cell.textContent = cellData;
+        }
         row.appendChild(cell);
       });
       

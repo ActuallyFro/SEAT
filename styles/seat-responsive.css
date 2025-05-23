@@ -513,4 +513,22 @@ td.tooltip-container {
   .collapsible-header .toggle-icon {
     font-size: 32px;
   }
+
+  /* Hide full faction name on mobile, show only code */
+  .missions-table .faction-full {
+    display: none;
+  }
+  .missions-table .faction-code {
+    display: inline;
+  }
+}
+
+/* Show full faction name on desktop, hide code-only span */
+@media screen and (min-width: 769px) {
+  .missions-table .faction-full {
+    display: inline;
+  }
+  .missions-table .faction-code {
+    display: none;
+  }
 }
