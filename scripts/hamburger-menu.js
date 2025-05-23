@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initHamburgerMenu();
   initColumnToggles();
   initResetButton();
+  initLongPressConfig();
   applyColumnVisibility();
 });
 
@@ -160,3 +161,47 @@ function initResetButton() {
     applyColumnVisibility();
   });
 }
+
+// Initialize long press duration configuration
+function initLongPressConfig() {
+  const slider = document.getElementById('longpressDuration');
+  const display = document.getElementById('durationDisplay');
+  
+  // Load saved duration or use default
+  const savedDuration = getLongPressDuration();
+  slider.value = savedDuration;
+  updateDurationDisplay(savedDuration);
+  
+  // Update display and save when slider changes
+  slider.addEventListener('input', function() {
+    const duration = parseInt(this.value);
+    updateDurationDisplay(duration);
+    saveLongPressDuration(duration);
+    
+    // Update the global long press duration if it exists
+    if (window.updateLongPressDuration) {
+      window.updateLongPressDuration(duration);
+    }
+  });
+}
+
+// Update the duration display text
+function updateDurationDisplay(duration) {
+  const display = document.getElementById('durationDisplay');
+  const seconds = (duration / 1000).toFixed(1);
+  display.textContent = `${seconds} seconds`;
+}
+
+// Save long press duration to localStorage
+function saveLongPressDuration(duration) {
+  localStorage.setItem('seatLongPressDuration', duration.toString());
+}
+
+// Get long press duration from localStorage
+function getLongPressDuration() {
+  const saved = localStorage.getItem('seatLongPressDuration');
+  return saved ? parseInt(saved) : 500; // Default to 500ms
+}
+
+// Export function to get current duration for use in other scripts
+window.getLongPressDuration = getLongPressDuration;

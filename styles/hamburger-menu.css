@@ -89,6 +89,36 @@
   border-top: 1px solid #444;
 }
 
+/* Settings divider */
+.settings-divider {
+  border-top: 1px solid #444;
+  margin: 20px 0;
+}
+
+/* Long press configuration */
+.longpress-config {
+  text-align: right;
+}
+
+.longpress-config label {
+  display: block;
+  font-size: 1.35em;
+  margin-bottom: 8px;
+  text-align: right;
+}
+
+.longpress-config input[type="range"] {
+  width: 100%;
+  margin-bottom: 5px;
+  direction: rtl; /* Right-to-left for range slider to start from right */
+}
+
+.longpress-config .duration-display {
+  font-size: 0.9em;
+  color: #ccc;
+  text-align: right;
+}
+
 /* Settings button style */
 .settings-button {
   background-color: #2196F3;
@@ -108,22 +138,22 @@
 /* Toggle switches - W3Schools Basic Example - Adapted */
 .toggle-setting {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  margin-bottom: 10px; /* Adjusted margin */
+  margin-bottom: 10px;
   flex-wrap: nowrap;
+  text-align: right;
+  gap: 10px; /* Add gap instead of margin */
 }
 
 .toggle-setting label {
-  flex: 1;
-  font-size: 1.1em; /* Slightly reduced from 1.35em for compactness */
+  font-size: 1.1em;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-right: 10px; /* Adjusted margin */
+  text-align: right;
+  margin-right: 0; /* Remove margin, using gap instead */
 }
 
-.toggle-switch { /* This is equivalent to <label class="switch"> in W3S */
+.toggle-switch {
   position: relative;
   display: inline-block;
   width: 34px;
@@ -137,27 +167,19 @@
   height: 0;
 }
 
-.toggle-switch { /* This is equivalent to <label class="switch"> in W3S */
-  position: relative;
-  display: inline-block;
-  width: 34px; /* Force total width to 68px */
-  height: 20px;
-  flex-shrink: 0;
-}
-
-.toggle-slider { /* This is equivalent to <span class="slider"> in W3S */
+.toggle-slider {
   position: absolute;
   cursor: pointer;
   top: 0;
   left: 0;
-  width: 34px; /* Force slider width to 68px */
+  right: 0;
+  bottom: 0;
+  width: 34px;
   height: 20px;
   background-color: #ccc;
   -webkit-transition: .4s;
   transition: .4s;
   border-radius: 20px;
-  right: 0;
-  bottom: 0;
 }
 
 .toggle-slider:before {
@@ -210,12 +232,15 @@ input:checked + .toggle-slider:before {
   }
   
   .toggle-setting {
-    flex-direction: row; /* Keep on same row */
-    align-items: center;
-    margin-bottom: 12px;
+    justify-content: flex-end; /* Ensure right alignment on mobile */
+    gap: 8px; /* Slightly smaller gap on mobile */
   }
   
   .toggle-setting label {
     font-size: 1.2em; /* Increased from 1.0em (originally 0.8em) */
+  }
+  
+  .longpress-config label {
+    font-size: 1.2em; /* Consistent with toggle labels on mobile */
   }
 }

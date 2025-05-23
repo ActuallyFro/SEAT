@@ -7,6 +7,9 @@ window.SJFI_data = {
   missions: {}
 };
 
+// Global array to track LongPress instances for updating duration
+window.longPressInstances = [];
+
 // Parse the JSON data - jsonDataString is loaded from SEAT-Data.js
 const parsedData = JSON.parse(jsonDataString);
 window.SE_Data_References = parsedData;
@@ -766,9 +769,12 @@ function displayCurrentMissions() {
       });
       
       // Add long-press for mobile devices to avoid double-tap zoom issues
-      new LongPress(row, function() {
+      const longPressInstance = new LongPress(row, function() {
         loadMissionToForm(itemName, mission, index);
-      }, 500);
+      });
+      
+      // Store the instance for later duration updates
+      window.longPressInstances.push(longPressInstance);
       
       // Add table row to the table
       table.appendChild(row);

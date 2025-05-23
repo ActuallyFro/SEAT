@@ -4,10 +4,11 @@
  */
 
 class LongPress {
-  constructor(element, callback, duration = 500) {
+  constructor(element, callback, duration = null) {
     this.element = element;
     this.callback = callback;
-    this.duration = duration;
+    // Use configurable duration from settings, fall back to provided duration or default
+    this.duration = duration || (window.getLongPressDuration ? window.getLongPressDuration() : 500);
     
     this.timer = null;
     this.isTouch = false;
@@ -17,6 +18,11 @@ class LongPress {
     this.moveThreshold = 10; // Pixels of movement allowed before canceling
     
     this.init();
+  }
+  
+  // Method to update duration from settings
+  updateDuration(newDuration) {
+    this.duration = newDuration;
   }
   
   init() {
