@@ -569,7 +569,7 @@ function displayCurrentMissions() {
   table.id = "missions-table";
 
   // Add Info column between Date and Actions
-  const headers = ["Item", "Amount", "Payment (€)", "Faction", "Planet", "Date", "Info", "Loaded", "Actions"];
+  const headers = ["Item", "Amount", "Payment (€)", "Faction", "Planet", "Info", "Loaded", "Actions"];
   const headerRow = document.createElement("tr");
   
   headers.forEach((headerText, index) => {
@@ -640,25 +640,19 @@ function displayCurrentMissions() {
       // Format the faction name nicely
       let factionName = "";
       if (mission.firstName && mission.secondName) {
-        // Extract the type code from second name (e.g., [B], [M], [T])
-        const typeMatch = mission.secondNameFull ? mission.secondNameFull.match(/^\[([BMT])\]/) : null;
+        // Get clean names without parentheses parts
+        const cleanFirstName = mission.firstNameFull ? mission.firstNameFull.replace(/\s*\([^)]+\)/g, "").trim() : "";
+        const cleanSecondName = mission.secondNameFull ? mission.secondNameFull.replace(/\s*\([^)]+\)/g, "").trim() : "";
+        
+        // Extract the type code - now from the end of the secondName
+        const typeMatch = cleanSecondName.match(/\[([BMT])\]$/);
         const typeCode = typeMatch ? typeMatch[1] : "";
         
-        // Get clean names without parentheses parts
-        const cleanFirstName = mission.firstNameFull ? mission.firstNameFull.replace(/\s*\([^)]+\)/g, "") : "";
-        const cleanSecondName = mission.secondNameFull ? mission.secondNameFull.replace(/^\[[BMT]\]\s*/, "").replace(/\s*\([^)]+\)/g, "") : "";
-        
-        // Format as FFSS - First name Second name [Type]
-        factionName = `${mission.firstName}${mission.secondName} - ${cleanFirstName} ${cleanSecondName} [${typeCode}]`;
+        // Format as just the clean names
+        factionName = `${cleanFirstName} ${cleanSecondName}`;
       } else {
         factionName = `${mission.firstName || ""} ${mission.secondName || ""}`;
       }
-      
-      // Format the date nicely
-      const dateObject = mission.dateAccepted ? new Date(mission.dateAccepted) : null;
-      const formattedDate = dateObject 
-        ? `${dateObject.toLocaleDateString()}` 
-        : mission.dateAccepted || '';
 
       // Add mission data to the row with proper item name
       const data = [
@@ -667,7 +661,6 @@ function displayCurrentMissions() {
         mission.payment ? `${mission.payment} €` : '',
         factionName,
         mission.planet || '',
-        formattedDate,
       ];
       
       data.forEach(cellData => {
@@ -680,18 +673,16 @@ function displayCurrentMissions() {
       const infoCell = document.createElement("td");
       infoCell.classList.add("info-cell");
       
-      // Format date for tooltip
+      // Format date for tooltip - make it the header
       const dateFormatted = mission.dateAccepted ? 
-        `Date Accepted: ${new Date(mission.dateAccepted).toLocaleDateString()}` : '';
+        `Mission Date: ${new Date(mission.dateAccepted).toLocaleDateString()}` : 'Mission Date: Not specified';
       
-      // Create tooltip content - date first, then description if it exists
+      // Create tooltip content - date first as header, then description if it exists
       let tooltipContent = dateFormatted;
       
       if (mission.description) {
         // Add a line break between date and description if both exist
-        if (dateFormatted) {
-          tooltipContent += '\n\n';
-        }
+        tooltipContent += '\n\n';
         tooltipContent += mission.description;
       }
       
@@ -734,18 +725,8 @@ function displayCurrentMissions() {
       loadedCell.appendChild(loadedButton);
       row.appendChild(loadedCell);
       
-      // Add action buttons (edit and remove)
+      // Add action buttons (only remove button, edit functionality available via double-click)
       const actionsCell = document.createElement("td");
-      
-      // Create edit button
-      const editButton = document.createElement("button");
-      editButton.textContent = "Edit";
-      editButton.classList.add("edit-btn");
-      editButton.onclick = function() {
-        // Load mission data into form for editing
-        loadMissionToForm(itemName, mission, index);
-      };
-      actionsCell.appendChild(editButton);
       
       // Create remove button
       const removeButton = document.createElement("button");
