@@ -105,59 +105,71 @@
   background-color: #0b7dda;
 }
 
-/* Toggle switches */
+/* Toggle switches - W3Schools Basic Example - Adapted */
 .toggle-setting {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px; /* Adjusted margin */
   flex-wrap: nowrap;
 }
 
 .toggle-setting label {
   flex: 1;
-  font-size: 1.35em; /* Increased from 1.1em (originally 0.9em) */
+  font-size: 1.1em; /* Slightly reduced from 1.35em for compactness */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-right: 8px;
+  margin-right: 10px; /* Adjusted margin */
 }
 
-.toggle-switch {
+.toggle-switch { /* This is equivalent to <label class="switch"> in W3S */
   position: relative;
   display: inline-block;
-  width: 24px; /* 200% of the circle's 12px width */
-  height: 14px; /* To comfortably fit the 12px circle + 1px padding top/bottom */
+  width: 34px;
+  height: 20px;
   flex-shrink: 0;
 }
 
-.toggle-switch input {
+.toggle-switch input { 
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-.toggle-slider {
+.toggle-switch { /* This is equivalent to <label class="switch"> in W3S */
+  position: relative;
+  display: inline-block;
+  width: 34px; /* Force total width to 68px */
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.toggle-slider { /* This is equivalent to <span class="slider"> in W3S */
   position: absolute;
   cursor: pointer;
   top: 0;
   left: 0;
+  width: 34px; /* Force slider width to 68px */
+  height: 20px;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 20px;
   right: 0;
   bottom: 0;
-  background-color: #444;
-  transition: .3s;
-  border-radius: 14px;
 }
 
 .toggle-slider:before {
   position: absolute;
   content: "";
-  height: 12px; /* Circle diameter */
-  width: 12px;  /* Circle diameter */
-  left: 1px;   /* Padding for circle starting position */
-  bottom: 1px; /* Padding for circle starting position */
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  top: 2px;
   background-color: white;
-  transition: .3s;
+  -webkit-transition: .4s;
+  transition: .4s;
   border-radius: 50%;
 }
 
@@ -165,8 +177,14 @@ input:checked + .toggle-slider {
   background-color: #2196F3;
 }
 
+input:focus + .toggle-slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
 input:checked + .toggle-slider:before {
-  transform: translateX(10px); /* (24px switch_width - 12px circle_width - 2*1px horizontal_padding_for_circle_track) */
+  -webkit-transform: translateX(14px);
+  -ms-transform: translateX(14px);
+  transform: translateX(14px);
 }
 
 /* Overlay */
