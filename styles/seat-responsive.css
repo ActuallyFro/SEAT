@@ -470,7 +470,7 @@ td.tooltip-container {
 /* Responsive adjustments */
 @media screen and (max-width: 768px) {
   html, body {
-    font-size: 200%; /* Double the base font size for mobile */
+    font-size: 100%; /* Use base font size for better mobile responsiveness */
   }
   
   #container {
@@ -483,15 +483,15 @@ td.tooltip-container {
   
   th, td {
     padding: 8px 10px;
-    font-size: 1em;
+    font-size: 0.9em;
   }
   
   h1 {
-    font-size: 1.8em;
+    font-size: 1.5em;
   }
   
   h3 {
-    font-size: 1.4em;
+    font-size: 1.2em;
   }
 
   .table-responsive {

@@ -9,21 +9,49 @@
     <script type="text/javascript" src="scripts/SJFI/lib-localstorage.js"></script>
     <script type="text/javascript" src="scripts/SJFI/lib-JSON-ImpExp.js"></script>
     <script type="text/javascript" src="scripts/SEAT-Data.js"></script>
+    <script type="text/javascript" src="scripts/longpress.js"></script>
+    <script type="text/javascript" src="scripts/hamburger-menu.js"></script>
     <script type="text/javascript" src="scripts/seat-app.js"></script>
 
     <link rel="stylesheet" type="text/css" href="styles/seat.css">
     <link rel="stylesheet" type="text/css" href="styles/seat-responsive.css">
     <link rel="stylesheet" type="text/css" href="styles/mobile-optimizations.css">
+    <link rel="stylesheet" type="text/css" href="styles/hamburger-menu.css">
   </head>
   
   <body translate="no" style="background-color: black; color: #FFF;">
+    <!-- Hamburger menu button -->
+    <div class="hamburger-menu" id="hamburgerMenu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <!-- Settings panel -->
+    <div class="settings-panel" id="settingsPanel">
+      <h2 class="settings-heading">Settings</h2>
+      
+      <div class="settings-section">
+        <h3>Table Columns</h3>
+        <div id="columnToggleContainer">
+          <!-- Column toggles will be added dynamically via JavaScript -->
+        </div>
+        <div class="settings-actions">
+          <button id="resetColumnsBtn" class="settings-button">Reset Columns</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay for closing settings when clicking outside -->
+    <div class="settings-overlay" id="settingsOverlay"></div>
+    
     <div id="container"><!-- Container start -->
       <div id="row">
         <div class="col-md-12">
           <!-- -------------- -->
           <!-- Centered Title -->
           <!-- -------------- -->
-          <h1 style="text-align: center; font-size: 3em;"><u>S</u>pace <u>E</u>ngineers <u>A</u>cquisition <u>T</u>ool</h1>
+          <h1 style="text-align: center; font-size: 2em;"><u>S</u>pace <u>E</u>ngineers <u>A</u>cquisition <u>T</u>ool</h1>
 
           <!-- ------------------ -->
           <hr><h1><u>Add Mission</u></h1>
@@ -127,8 +155,8 @@
           <!-- -------------------------- -->
           <div id="adminFunctionsContainer">
             <div class="admin-buttons">
-              <button id="export-button">Export Acquisition List</button>
-              <button id="import-button">Import Acquisition List</button>
+              <button id="export-button">Export List</button>
+              <button id="import-button" style="background-color: #FF9800;">Import List</button>
               <input type="file" id="import-file" style="display:none">
               <button id="clear-storage" class="danger">Clear All Data</button>
             </div>

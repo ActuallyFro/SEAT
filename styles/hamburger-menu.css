@@ -1,0 +1,203 @@
+/* Hamburger Menu and Settings Styles */
+
+/* Hamburger menu button */
+.hamburger-menu {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 1px solid #444;
+}
+
+.hamburger-menu span {
+  display: block;
+  width: 24px;
+  height: 3px;
+  background-color: white;
+  margin: 2px 0;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+/* Hamburger animation */
+.hamburger-menu.active span:nth-child(1) {
+  transform: rotate(-45deg) translate(-5px, 6px);
+}
+
+.hamburger-menu.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-menu.active span:nth-child(3) {
+  transform: rotate(45deg) translate(-5px, -6px);
+}
+
+/* Settings panel */
+.settings-panel {
+  position: fixed;
+  top: 0;
+  right: -280px;
+  width: 260px;
+  height: 100%;
+  background-color: rgba(20, 20, 20, 0.95);
+  transition: right 0.3s ease;
+  z-index: 999;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+  padding: 60px 10px 20px;
+  overflow-y: auto;
+  border-left: 1px solid #444;
+}
+
+.settings-panel.active {
+  right: 0;
+}
+
+.settings-heading {
+  margin-top: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #444;
+  font-size: 1.3em;
+}
+
+.settings-section {
+  margin-bottom: 20px;
+}
+
+.settings-section h3 {
+  font-size: 1.1em;
+  margin-bottom: 15px;
+  color: #ddd;
+  border-bottom: 1px solid #444;
+  padding-bottom: 5px;
+}
+
+/* Settings actions container */
+.settings-actions {
+  margin-top: 15px;
+  text-align: center;
+  padding-top: 10px;
+  border-top: 1px solid #444;
+}
+
+/* Settings button style */
+.settings-button {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.3s;
+}
+
+.settings-button:hover {
+  background-color: #0b7dda;
+}
+
+/* Toggle switches */
+.toggle-setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: nowrap;
+}
+
+.toggle-setting label {
+  flex: 1;
+  font-size: 0.9em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 8px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 20px; /* Short horizontal width */
+  height: 14px; /* Original vertical height restored */
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #444;
+  transition: .3s;
+  border-radius: 14px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 12px; /* Original circle height */
+  width: 12px;
+  left: 1px;
+  bottom: 1px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: #2196F3;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(6px); /* Much shorter horizontal travel */
+}
+
+/* Overlay */
+.settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  display: none;
+}
+
+.settings-overlay.active {
+  display: block;
+}
+
+/* Mobile optimizations for settings panel */
+@media screen and (max-width: 768px) {
+  .settings-panel {
+    width: 240px; /* Smaller width on mobile */
+  }
+  
+  .toggle-setting {
+    flex-direction: row; /* Keep on same row */
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  
+  .toggle-setting label {
+    font-size: 0.8em; /* Even smaller on mobile */
+  }
+}

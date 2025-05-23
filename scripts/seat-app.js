@@ -243,7 +243,8 @@ function pageSetupFactionFirstNameSelectList() {
   Object.keys(firstNames).forEach(name => {
     const option = document.createElement("option");
     option.value = firstNames[name];
-    option.textContent = name; // Display the full name
+    // Display code + name format exactly as in the data
+    option.textContent = name;
     option.setAttribute('data-fullname', name);
     selectElement.appendChild(option);
   });
@@ -289,7 +290,8 @@ function pageSetupFactionSecondNameSelectList() {
   Object.keys(secondNames).forEach(name => {
     const option = document.createElement("option");
     option.value = secondNames[name];
-    option.textContent = name; // Display the full name
+    // Display name format exactly as in the data
+    option.textContent = name;
     option.setAttribute('data-fullname', name);
     selectElement.appendChild(option);
   });
@@ -752,12 +754,22 @@ function displayCurrentMissions() {
         loadMissionToForm(itemName, mission, index);
       });
       
+      // Add long-press for mobile devices to avoid double-tap zoom issues
+      new LongPress(row, function() {
+        loadMissionToForm(itemName, mission, index);
+      }, 500);
+      
       // Add table row to the table
       table.appendChild(row);
     });
   });
 
   currentMissionListDiv.appendChild(table);
+  
+  // Apply column visibility settings if the function exists
+  if (typeof applyColumnVisibility === 'function') {
+    applyColumnVisibility();
+  }
 }
 
 // Reload table data
