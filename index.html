@@ -71,6 +71,7 @@
               <label for="itemSearch">Search Acquisition Items:</label>
               <div class="search-container">
                 <input type="text" id="itemSearch" class="search-input" placeholder="Search for items...">
+                <button type="button" class="search-clear" id="itemSearchClear">×</button>
               </div>
             </div>
             
@@ -154,7 +155,10 @@
           <!-- Table that is created from the list of Acqusition Entries (e.g., a MAP of the deliverable, with given #/missions) -->
           <div id="missionListContainer">
             <div class="form-group">
-              <input type="text" id="missionSearch" class="search-input" placeholder="Search missions...">
+              <div class="search-container">
+                <input type="text" id="missionSearch" class="search-input" placeholder="Search missions...">
+                <button type="button" class="search-clear" id="missionSearchClear">×</button>
+              </div>
             </div>
             <div class="table-responsive">
               <div class="current-mission-list" id="current-mission-list"></div>

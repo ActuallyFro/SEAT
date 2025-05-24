@@ -64,14 +64,46 @@ label {
   margin-bottom: 15px;
 }
 
+/* Search input styling */
+.search-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
 .search-input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 8px 35px 8px 12px; /* Add right padding for clear button */
   border-radius: 5px;
   border: 1px solid #444;
   background-color: #111;
   color: #fff;
   box-sizing: border-box;
+}
+
+.search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  display: none; /* Hidden by default */
+  z-index: 10;
+}
+
+.search-clear:hover {
+  color: #fff;
+  background-color: #333;
+}
+
+.search-clear.visible {
+  display: block;
 }
 
 select, input[type="text"], input[type="number"], input[type="date"] {

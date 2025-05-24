@@ -323,7 +323,28 @@ function initializeFormDropdowns() {
 // Setup item search
 function setupItemSearch() {
   const searchInput = document.getElementById('itemSearch');
+  const clearButton = document.getElementById('itemSearchClear');
   const selectElement = document.getElementById('formAcquisitionItem');
+  
+  // Toggle clear button visibility based on input content
+  function toggleClearButton() {
+    if (searchInput.value.length > 0) {
+      clearButton.classList.add('visible');
+    } else {
+      clearButton.classList.remove('visible');
+    }
+  }
+  
+  // Clear button click handler
+  clearButton.addEventListener('click', function() {
+    searchInput.value = '';
+    resetOptions();
+    toggleClearButton();
+    searchInput.focus();
+  });
+  
+  // Show/hide clear button on input
+  searchInput.addEventListener('input', toggleClearButton);
   
   // Clear previous options and regenerate full list
   function resetOptions() {
@@ -422,6 +443,29 @@ function setupItemSearch() {
 // Setup mission search
 function setupMissionSearch() {
   const searchInput = document.getElementById('missionSearch');
+  const clearButton = document.getElementById('missionSearchClear');
+  
+  // Toggle clear button visibility based on input content
+  function toggleClearButton() {
+    if (searchInput.value.length > 0) {
+      clearButton.classList.add('visible');
+    } else {
+      clearButton.classList.remove('visible');
+    }
+  }
+  
+  // Clear button click handler
+  clearButton.addEventListener('click', function() {
+    searchInput.value = '';
+    // Clear the search by triggering the input event
+    const inputEvent = new Event('input', { bubbles: true });
+    searchInput.dispatchEvent(inputEvent);
+    toggleClearButton();
+    searchInput.focus();
+  });
+  
+  // Show/hide clear button on input
+  searchInput.addEventListener('input', toggleClearButton);
   
   searchInput.addEventListener('input', function() {
     const searchTerm = this.value.toLowerCase();
