@@ -91,10 +91,16 @@ label {
   color: #999;
   cursor: pointer;
   font-size: 16px;
-  padding: 2px 4px;
+  font-family: Arial, sans-serif;
+  font-weight: normal;
+  padding: 0 0 7px 0;
   border-radius: 3px;
   display: none; /* Hidden by default */
   z-index: 10;
+  height: 24px;
+  width: 24px;
+  line-height: 19px;
+  text-align: center;
 }
 
 .search-clear:hover {
@@ -552,6 +558,16 @@ td.tooltip-container {
   }
   .missions-table .faction-code {
     display: inline;
+  }
+  
+  /* Adjust clear button for mobile */
+  .search-clear {
+    right: 12px;
+    height: 28px;
+    width: 28px;
+    font-size: 18px;
+    padding: 0 0 5px 0;
+    line-height: 23px;
   }
 }
 
