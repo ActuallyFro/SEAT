@@ -167,6 +167,12 @@ function convertToCollapsible(elementId, title) {
       content.classList.add('collapsed');
       wrapper.classList.add('collapsed');
       toggleIcon.textContent = '+'; // Plus sign
+      
+      // QoL Enhancement: If this is the "Add Mission" section being collapsed,
+      // automatically cancel any active editing state (acts like Cancel button)
+      if (title === 'Add Mission' && window.currentlyEditingMission) {
+        cancelEdit();
+      }
     }
   });
   
