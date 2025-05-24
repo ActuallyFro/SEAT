@@ -505,16 +505,21 @@ function storeFormData() {
     return;
   }
 
-  const numericAmount = parseInt(amountValue);
+  // Validate amount - ensure it's a positive integer
+  const numericAmount = parseInt(amountValue.toString().replace(/\D/g, ''));
   if (isNaN(numericAmount) || numericAmount <= 0) {
     alert("Please enter a valid positive number for the amount.");
     return;
   }
 
-  const numericPayment = paymentValue ? parseInt(paymentValue) : 0;
-  if (isNaN(numericPayment) || numericPayment < 0) {
-    alert("Please enter a valid non-negative number for payment, or leave it blank for 0.");
-    return;
+  // Validate payment - ensure it's a non-negative integer or empty
+  let numericPayment = 0;
+  if (paymentValue && paymentValue.toString().trim() !== '') {
+    numericPayment = parseInt(paymentValue.toString().replace(/\D/g, ''));
+    if (isNaN(numericPayment) || numericPayment < 0) {
+      alert("Please enter a valid non-negative number for payment, or leave it blank for 0.");
+      return;
+    }
   }
 
   // Create mission object with all details
@@ -1079,8 +1084,9 @@ function sortTable(columnIndex) {
     
     // Handle numeric values for Amount and Payment columns
     if (columnIndex === 1 || columnIndex === 2) {
-      aValue = parseInt(aValue) || 0;
-      bValue = parseInt(bValue) || 0;
+      // Parse comma-formatted numbers properly by removing commas first
+      aValue = parseInt(aValue.replace(/,/g, '')) || 0;
+      bValue = parseInt(bValue.replace(/,/g, '')) || 0;
       return currentSortDirection === 'asc' ? aValue - bValue : bValue - aValue;
     }
     
