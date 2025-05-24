@@ -1085,8 +1085,12 @@ function sortTable(columnIndex) {
     // Handle numeric values for Amount and Payment columns
     if (columnIndex === 1 || columnIndex === 2) {
       // Parse comma-formatted numbers properly by removing commas first
-      aValue = parseInt(aValue.replace(/,/g, '')) || 0;
-      bValue = parseInt(bValue.replace(/,/g, '')) || 0;
+      // Handle empty strings as 0 for sorting purposes
+      const aText = aValue.replace(/,/g, '');
+      const bText = bValue.replace(/,/g, '');
+      aValue = parseInt(aText) || 0;
+      bValue = parseInt(bText) || 0;
+      
       return currentSortDirection === 'asc' ? aValue - bValue : bValue - aValue;
     }
     
