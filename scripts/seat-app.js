@@ -170,8 +170,15 @@ function convertToCollapsible(elementId, title) {
       
       // QoL Enhancement: If this is the "Add Mission" section being collapsed,
       // automatically cancel any active editing state (acts like Cancel button)
-      if (title === 'Add Mission' && window.currentlyEditingMission) {
-        cancelEdit();
+      // or soft reset the form if no editing is active
+      if (title === 'Add Mission') {
+        if (window.currentlyEditingMission) {
+          // If editing, do full cancel
+          cancelEdit();
+        } else {
+          // If not editing, do soft reset to preserve planet/faction names
+          softResetForm();
+        }
       }
     }
   });
@@ -376,6 +383,8 @@ function setupItemSearch() {
           // Don't add category suffix to item name
           itemOption.value = `${items[item]}`;
           itemOption.textContent = `${items[item]}`;
+          // IMPORTANT: Set the category attribute
+          itemOption.setAttribute('data-category', category);
           selectElement.appendChild(itemOption);
         }
       });
@@ -429,6 +438,8 @@ function setupItemSearch() {
           // Don't add suffix for any category
           itemOption.value = `${items[item]}`;
           itemOption.textContent = `${items[item]}`;
+          // IMPORTANT: Set the category attribute for searched items too
+          itemOption.setAttribute('data-category', category);
           selectElement.appendChild(itemOption);
         });
         
@@ -590,16 +601,8 @@ function storeFormData() {
     window.SJFI_data.missions[itemName].push(mission);
   }
 
-  // Reset form fields
-  document.getElementById("formAcquisitionItem").selectedIndex = 0;
-  document.getElementById("formAmount").value = "";
-  document.getElementById("formPayment").value = "";
-  // Planet selection is intentionally retained
-  document.getElementById("formDescription").value = "";
-
-  const today = new Date();
-  const formattedDate = today.toISOString().slice(0, 10);
-  document.getElementById('formDate').value = formattedDate;
+  // Soft reset form fields (preserve planet and faction names)
+  softResetForm();
   
   reloadTableData();
   storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
@@ -684,24 +687,27 @@ function displayCurrentMissions() {
     }
     
     // Fallback - search through all categories
-    let itemFullName = itemName; // Default to just the item name
+    // Try Ores first, then Ingots, then Components, then Tools
+    const categoryOrder = ["Ores", "Ingots", "Components", "Tools"];
     
-    Object.keys(window.SE_Data_References.Contract["Acquisition Request Item"]).forEach(category => {
+    for (const category of categoryOrder) {
       const items = window.SE_Data_References.Contract["Acquisition Request Item"][category];
+      if (!items) continue;
       
       // Check if this item exists in this category
-      Object.keys(items).forEach(item => {
+      for (const item of Object.keys(items)) {
         if (items[item] === itemName) {
           // For ores and ingots, append the category if not already in the name
           if ((category === "Ores" || category === "Ingots") && !itemName.includes(category.slice(0, -1))) {
-            itemFullName = `${itemName} ${category.slice(0, -1)}`; // Remove the 's' from "Ores" or "Ingots"
+            return `${itemName} ${category.slice(0, -1)}`; // Remove the 's' from "Ores" or "Ingots"
           }
-          // For Components, we leave as is since they already have descriptive names
+          // For Components and Tools, we leave as is since they already have descriptive names
+          return itemName;
         }
-      });
-    });
+      }
+    }
     
-    return itemFullName;
+    return itemName; // Fallback to original name if not found
   }
 
   // Add table rows with mission data
@@ -941,6 +947,30 @@ function cancelEdit() {
   
   // Reload form dropdowns to ensure they're properly populated
   initializeFormDropdowns();
+}
+
+// Function to soft reset form - keeps planet and faction names, clears other fields
+function softResetForm() {
+  // Store current values to preserve
+  const currentPlanet = document.getElementById("formPlanet").value;
+  const currentFirstName = document.getElementById("formFirstName").value;
+  const currentSecondName = document.getElementById("formSecondName").value;
+  
+  // Reset the form completely
+  document.getElementById('missionForm').reset();
+  
+  // Restore preserved values
+  document.getElementById("formPlanet").value = currentPlanet;
+  document.getElementById("formFirstName").value = currentFirstName;
+  document.getElementById("formSecondName").value = currentSecondName;
+  
+  // Set today's date
+  const today = new Date();
+  const formattedDate = today.toISOString().slice(0, 10);
+  document.getElementById('formDate').value = formattedDate;
+  
+  // Ensure first item is selected (index 0 should be a category header)
+  document.getElementById("formAcquisitionItem").selectedIndex = 0;
 }
 
 // Load mission data into form for editing

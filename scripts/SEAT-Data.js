@@ -31,7 +31,7 @@
           },
           "Components": {
             "Bulletproof Glass": "Bulletproof Glass",
-            "Computer Computer": "Computer Computer",
+            "Computer": "Computer",
             "Construction Comp.": "Construction Comp.",
             "Detector Components": "Detector Components",
             "Display": "Display",
