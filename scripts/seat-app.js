@@ -687,8 +687,8 @@ function displayCurrentMissions() {
     }
     
     // Fallback - search through all categories
-    // Try Ores first, then Ingots, then Components, then Tools
-    const categoryOrder = ["Ores", "Ingots", "Components", "Tools"];
+    // CRITICAL: Try Ingots first, then Ores to prioritize Ingots when both exist
+    const categoryOrder = ["Ingots", "Ores", "Components", "Tools"];
     
     for (const category of categoryOrder) {
       const items = window.SE_Data_References.Contract["Acquisition Request Item"][category];
@@ -987,10 +987,37 @@ function loadMissionToForm(itemName, mission, index) {
   // Populate form fields with mission data
   const itemSelect = document.getElementById("formAcquisitionItem");
   const options = itemSelect.options;
+  
+  // Try to find the correct option by matching both value and category
+  let foundOption = false;
   for (let i = 0; i < options.length; i++) {
-    if (options[i].value === itemName) {
-      itemSelect.selectedIndex = i;
-      break;
+    const option = options[i];
+    // Check if value matches and category matches (if we have stored category)
+    if (option.value === itemName) {
+      if (mission.itemCategory) {
+        // If we have a stored category, make sure it matches
+        const optionCategory = option.getAttribute('data-category');
+        if (optionCategory === mission.itemCategory) {
+          itemSelect.selectedIndex = i;
+          foundOption = true;
+          break;
+        }
+      } else {
+        // No stored category, just use first match (fallback for older data)
+        itemSelect.selectedIndex = i;
+        foundOption = true;
+        break;
+      }
+    }
+  }
+  
+  // If we couldn't find a match with category, fall back to first value match
+  if (!foundOption) {
+    for (let i = 0; i < options.length; i++) {
+      if (options[i].value === itemName) {
+        itemSelect.selectedIndex = i;
+        break;
+      }
     }
   }
   

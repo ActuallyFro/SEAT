@@ -1,3 +1,3 @@
 const versionDataString = `{
-  "version": "Version: ed1f412"
+  "version": "Version: 87f9adc"
 }`;
