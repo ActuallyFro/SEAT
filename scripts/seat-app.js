@@ -549,8 +549,8 @@ function storeFormData() {
     dateAccepted: dateAccepted,
     description: description,
     loaded: false, // Default to not loaded
-    // Store category information
-    itemCategory: document.querySelector(`#formAcquisitionItem option[value="${itemName}"]`)?.getAttribute('data-category') || "",
+    // Store category information from the actually selected option
+    itemCategory: document.getElementById("formAcquisitionItem").selectedOptions[0]?.getAttribute('data-category') || "",
     firstNameFull: firstName ? document.querySelector(`#formFirstName option[value="${firstName}"]`)?.getAttribute('data-fullname') || "" : "",
     secondNameFull: secondName ? document.querySelector(`#formSecondName option[value="${secondName}"]`)?.getAttribute('data-fullname') || "" : ""
   };
