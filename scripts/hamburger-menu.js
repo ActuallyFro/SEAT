@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initResetButton();
   initLongPressConfig();
   applyColumnVisibility();
+  initVersionDisplay();
 });
 
 // Initialize the hamburger menu functionality
@@ -201,6 +202,33 @@ function saveLongPressDuration(duration) {
 function getLongPressDuration() {
   const saved = localStorage.getItem('seatLongPressDuration');
   return saved ? parseInt(saved) : 500; // Default to 500ms
+}
+
+// Initialize version display
+function initVersionDisplay() {
+  fetchVersionInfo().then(version => {
+    const versionContainer = document.getElementById('versionInfo');
+    if (version && versionContainer) {
+      versionContainer.textContent = version;
+    }
+  }).catch(error => {
+    console.log('Could not load version info:', error);
+    // Silently fail - version info is not critical
+  });
+}
+
+// Fetch version information from SEAT-Version.js
+async function fetchVersionInfo() {
+  try {
+    // Parse the version data from the global variable
+    if (typeof versionDataString !== 'undefined') {
+      const versionData = JSON.parse(versionDataString);
+      return versionData.version;
+    }
+    return null;
+  } catch (error) {
+    throw error;
+  }
 }
 
 // Export function to get current duration for use in other scripts

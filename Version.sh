@@ -15,9 +15,17 @@ version_hash=$(sha256sum "$tmp_file" | awk '{print $1}')
 # Step 3: Truncate to 7 characters
 version_short=${version_hash:0:7}
 
-# Step 4: Write the version to Version.md
+# Step 4: Write the version to Version.md and create JavaScript version file
 echo "Version: $version_short" > Version.md
-echo "Wrote version $version_short to Version.md"
+
+# Step 5: Create JavaScript version file
+cat > "scripts/SEAT-Version.js" << EOF
+const versionDataString = \`{
+  "version": "Version: $version_short"
+}\`;
+EOF
+
+echo "Wrote version $version_short to Version.md and scripts/SEAT-Version.js"
 
 # Cleanup
 rm "$tmp_file"
