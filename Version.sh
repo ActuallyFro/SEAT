@@ -27,7 +27,7 @@ calculate_version() {
     local tmp_file=$(mktemp)
     
     # Step 1: Get Git-tracked files and filter out version files
-    git ls-files -s | grep -v ' Version.md$' | grep -v ' scripts/SEAT-Version.js$' | awk '{print $2, $4}' | sort > "$tmp_file"
+    git ls-files -s | grep -v -E '\s(Version\.md|scripts/SEAT-Version\.js)$' | awk '{print $2, $4}' | sort > "$tmp_file"
     
     # Step 2: Hash the content using SHA256
     local version_hash=$(sha256sum "$tmp_file" | awk '{print $1}')
