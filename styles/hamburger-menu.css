@@ -124,7 +124,7 @@
   background-color: #2196F3;
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 5px 12px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9em;
@@ -243,7 +243,7 @@ input:checked + .toggle-slider:before {
 
 .settings-section .settings-actions .settings-button {
   font-size: 0.8em;
-  padding: 6px 12px;
+  padding: 4px 10px;
   background-color: #FF9800; /* Orange color to distinguish from other buttons */
 }
 
@@ -255,6 +255,7 @@ input:checked + .toggle-slider:before {
 @media screen and (max-width: 768px) {
   .settings-panel {
     width: 240px; /* Smaller width on mobile */
+    padding-bottom: 50px; /* Add bottom padding to prevent button truncation */
   }
   
   .toggle-setting {
@@ -268,5 +269,25 @@ input:checked + .toggle-slider:before {
   
   .longpress-config label {
     font-size: 1.2em; /* Consistent with toggle labels on mobile */
+  }
+  
+  /* Make buttons even thinner on mobile */
+  .settings-button {
+    padding: 4px 10px;
+    font-size: 0.8em;
+  }
+  
+  .settings-section .settings-actions .settings-button {
+    padding: 3px 8px;
+    font-size: 0.75em;
+  }
+  
+  /* Reduce margins to save space */
+  .settings-section {
+    margin-bottom: 15px;
+  }
+  
+  .settings-divider {
+    margin: 15px 0;
   }
 }
