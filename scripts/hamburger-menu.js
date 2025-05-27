@@ -11,6 +11,7 @@ const tableColumns = [
   { id: 'faction', label: 'Faction', defaultVisible: true },
   { id: 'planet', label: 'Planet', defaultVisible: true },
   { id: 'info', label: 'Info', defaultVisible: true },
+  { id: 'produced', label: 'Produced', defaultVisible: true },
   { id: 'loaded', label: 'Loaded', defaultVisible: true },
   { id: 'actions', label: 'Actions', defaultVisible: true }
 ];

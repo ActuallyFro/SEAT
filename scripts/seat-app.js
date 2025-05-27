@@ -558,6 +558,7 @@ function storeFormData() {
     planet: planet,
     dateAccepted: dateAccepted,
     description: description,
+    produced: false, // Default to not produced
     loaded: false, // Default to not loaded
     // Store category information from the actually selected option
     itemCategory: document.getElementById("formAcquisitionItem").selectedOptions[0]?.getAttribute('data-category') || "",
@@ -569,10 +570,11 @@ function storeFormData() {
   if (window.currentlyEditingMission) {
     const { itemName: oldItemName, index } = window.currentlyEditingMission;
     
-    // Preserve the loaded status from the original mission
+    // Preserve the loaded and produced status from the original mission
     if (window.SJFI_data.missions[oldItemName] && 
         window.SJFI_data.missions[oldItemName][index]) {
       mission.loaded = window.SJFI_data.missions[oldItemName][index].loaded;
+      mission.produced = window.SJFI_data.missions[oldItemName][index].produced;
     }
     
     // Remove the original mission
@@ -656,14 +658,14 @@ function displayCurrentMissions() {
   table.id = "missions-table";
 
   // Add Info column between Date and Actions
-  const headers = ["Item", "Amount", "Payment", "Faction", "Planet", "Info", "Loaded", "Actions"];
+  const headers = ["Item", "Amount", "Payment", "Faction", "Planet", "Info", "Produced", "Loaded", "Actions"];
   const headerRow = document.createElement("tr");
   
   headers.forEach((headerText, index) => {
     const header = document.createElement("th");
     
-    // Don't make the Info and Actions columns sortable
-    if (headerText !== "Actions" && headerText !== "Info") {
+    // Don't make the Info, Produced, Loaded, and Actions columns sortable
+    if (headerText !== "Actions" && headerText !== "Info" && headerText !== "Produced" && headerText !== "Loaded") {
       header.classList.add("sortable");
       header.dataset.sortIndex = index;
       header.innerHTML = `${headerText} <span class="sort-icon">↕</span>`;
@@ -808,13 +810,38 @@ function displayCurrentMissions() {
       }
       row.appendChild(infoCell);
 
+      // Add produced status toggle button
+      const producedCell = document.createElement("td");
+      producedCell.style.textAlign = "center";
+      
+      const producedButton = document.createElement("button");
+      producedButton.classList.add("produced-btn");
+      producedButton.innerHTML = mission.produced ? "&#10003;" : "&#10005;";
+      
+      if (mission.produced) {
+        producedButton.classList.add("checked");
+      }
+      
+      producedButton.onclick = function() {
+        // Toggle the produced status
+        mission.produced = !mission.produced;
+        producedButton.innerHTML = mission.produced ? "&#10003;" : "&#10005;";
+        producedButton.classList.toggle("checked", mission.produced);
+        
+        // Save the updated data
+        storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+      };
+      
+      producedCell.appendChild(producedButton);
+      row.appendChild(producedCell);
+
       // Add loaded status toggle button
       const loadedCell = document.createElement("td");
       loadedCell.style.textAlign = "center";
       
       const loadedButton = document.createElement("button");
       loadedButton.classList.add("loaded-btn");
-      loadedButton.textContent = mission.loaded ? "✓" : "×";
+      loadedButton.innerHTML = mission.loaded ? "&#10003;" : "&#10005;";
       
       if (mission.loaded) {
         loadedButton.classList.add("checked");
@@ -823,7 +850,7 @@ function displayCurrentMissions() {
       loadedButton.onclick = function() {
         // Toggle the loaded status
         mission.loaded = !mission.loaded;
-        loadedButton.textContent = mission.loaded ? "✓" : "×";
+        loadedButton.innerHTML = mission.loaded ? "&#10003;" : "&#10005;";
         loadedButton.classList.toggle("checked", mission.loaded);
         
         // Save the updated data
@@ -1177,9 +1204,6 @@ function updateLongPressDuration(newDuration) {
 window.updateLongPressDuration = updateLongPressDuration;
 
 // Table sorting functionality
-let currentSortColumn = -1;
-let currentSortDirection = 'asc';
-
 function sortTable(columnIndex) {
   const table = document.getElementById("missions-table");
   if (!table) return;
