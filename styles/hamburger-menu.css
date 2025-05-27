@@ -231,6 +231,24 @@ input:checked + .toggle-slider:before {
   font-size: 0.9em;
   color: #ccc;
   font-family: monospace;
+  margin-bottom: 10px;
+}
+
+/* Version section refresh button */
+.settings-section .settings-actions {
+  margin-top: 10px;
+  border-top: none; /* Remove border for version section */
+  padding-top: 0;
+}
+
+.settings-section .settings-actions .settings-button {
+  font-size: 0.8em;
+  padding: 6px 12px;
+  background-color: #FF9800; /* Orange color to distinguish from other buttons */
+}
+
+.settings-section .settings-actions .settings-button:hover {
+  background-color: #e68a00;
 }
 
 /* Mobile optimizations for settings panel */

@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initLongPressConfig();
   applyColumnVisibility();
   initVersionDisplay();
+  initRefreshCacheButton();
 });
 
 // Initialize the hamburger menu functionality
@@ -229,6 +230,47 @@ async function fetchVersionInfo() {
     return null;
   } catch (error) {
     throw error;
+  }
+}
+
+// Initialize cache refresh button
+function initRefreshCacheButton() {
+  const refreshBtn = document.getElementById('refreshCacheBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', function() {
+      // Show confirmation dialog
+      const confirmed = confirm(
+        'This will refresh the page and clear browser cache to ensure you have the latest version.\n\n' +
+        'Any unsaved data will be lost. Continue?'
+      );
+      
+      if (confirmed) {
+        // Force hard refresh by adding timestamp to URL and reloading
+        try {
+          // Clear browser cache (where supported)
+          if ('caches' in window) {
+            caches.keys().then(names => {
+              names.forEach(name => {
+                caches.delete(name);
+              });
+            });
+          }
+          
+          // Force hard refresh with cache bypass
+          const currentUrl = window.location.href.split('?')[0];
+          const timestamp = new Date().getTime();
+          const refreshUrl = `${currentUrl}?cache_bust=${timestamp}`;
+          
+          // Use location.replace to prevent back button issues
+          window.location.replace(refreshUrl);
+          
+        } catch (error) {
+          console.warn('Cache clearing not fully supported, performing hard refresh');
+          // Fallback: standard hard refresh
+          window.location.reload(true);
+        }
+      }
+    });
   }
 }
 
