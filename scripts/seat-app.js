@@ -179,14 +179,24 @@ function convertToCollapsible(elementId, title) {
           // If not editing, do soft reset to preserve planet/faction names
           softResetForm();
         }
+        // Always clear item search when collapsing Add Mission section
+        clearItemSearch();
       }
     }
   });
   
-  // Initially expanded by default
-  content.classList.remove('collapsed');
-  wrapper.classList.remove('collapsed');
-  toggleIcon.textContent = '−';
+  // Set initial state based on section type
+  if (title === 'Admin Functions') {
+    // Admin Functions starts collapsed
+    content.classList.add('collapsed');
+    wrapper.classList.add('collapsed');
+    toggleIcon.textContent = '+';
+  } else {
+    // Other sections start expanded by default
+    content.classList.remove('collapsed');
+    wrapper.classList.remove('collapsed');
+    toggleIcon.textContent = '−';
+  }
 }
 
 // Generate <select> options for formAcquisitionItem
@@ -929,6 +939,60 @@ function clearLocalStorage() {
   }
 }
 
+// Function to clear the item search field and reset dropdown
+function clearItemSearch() {
+  const searchInput = document.getElementById('itemSearch');
+  const clearButton = document.getElementById('itemSearchClear');
+  
+  if (searchInput) {
+    searchInput.value = '';
+    // Remove clear button visibility
+    if (clearButton) {
+      clearButton.classList.remove('visible');
+    }
+    // Reset the dropdown options to show all items
+    const selectElement = document.getElementById('formAcquisitionItem');
+    if (selectElement) {
+      // Store the current selection if any
+      const currentSelection = selectElement.value;
+      
+      // Clear and regenerate the dropdown
+      selectElement.innerHTML = '';
+      
+      Object.keys(window.SE_Data_References.Contract["Acquisition Request Item"]).forEach(category => {
+        // Add category as non-selectable header
+        const categoryOption = document.createElement("option");
+        categoryOption.value = category;
+        categoryOption.disabled = true;
+        categoryOption.textContent = `--- ${category} ---`;
+        selectElement.appendChild(categoryOption);
+
+        // Add items under the category
+        const items = window.SE_Data_References.Contract["Acquisition Request Item"][category];
+        Object.keys(items).forEach(item => {
+          if (items[item] !== null) {
+            const itemOption = document.createElement("option");
+            itemOption.value = `${items[item]}`;
+            itemOption.textContent = `${items[item]}`;
+            itemOption.setAttribute('data-category', category);
+            selectElement.appendChild(itemOption);
+          }
+        });
+      });
+      
+      // Restore selection if possible
+      if (currentSelection) {
+        for (const option of selectElement.options) {
+          if (option.value === currentSelection) {
+            option.selected = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
 // Function to cancel editing and reset form to add mode
 function cancelEdit() {
   // Clear editing state
@@ -936,6 +1000,9 @@ function cancelEdit() {
   
   // Reset form
   document.getElementById('missionForm').reset();
+  
+  // Clear item search
+  clearItemSearch();
   
   // Reset submit button text
   const submitButton = document.querySelector('#missionForm input[type="submit"]');
@@ -958,6 +1025,9 @@ function softResetForm() {
   
   // Reset the form completely
   document.getElementById('missionForm').reset();
+  
+  // Clear item search
+  clearItemSearch();
   
   // Restore preserved values
   document.getElementById("formPlanet").value = currentPlanet;
