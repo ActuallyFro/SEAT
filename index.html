@@ -58,7 +58,7 @@
           <!-- Version will be loaded dynamically -->
         </div>
         <div class="settings-actions">
-          <button id="refreshCacheBtn" class="settings-button">Refresh Cache</button>
+          <button id="refreshCacheBtn" class="settings-button">Reload/Clear Page Cache</button>
         </div>
       </div>
     </div>
@@ -78,27 +78,24 @@
           <hr><h1><u>Add Mission</u></h1>
           <!-- ------------------ -->
           <form id="missionForm">
-            <!-- Acquisition Item Search & Selection -->
-            <div class="form-group">
-              <label for="itemSearch">Search Acquisition Items:</label>
-              <div class="search-container">
-                <input type="text" id="itemSearch" class="search-input" placeholder="Search for items...">
-                <button type="button" class="search-clear" id="itemSearchClear">✕</button>
-              </div>
-            </div>
-            
             <div class="form-row">
               <div class="form-col">
-                <!-- Acquisition item (from `"Contract"."Acquisition Request Item".(...) and amount`)-->
+                <!-- Acquisition item: searchable custom dropdown (JS transforms the select) -->
                 <div class="form-group">
                   <label for="formAcquisitionItem">Acquisition Item:</label>
-                  <select id="formAcquisitionItem" name="formAcquisitionItem"></select>
+                  <div class="select-wrapper">
+                    <select id="formAcquisitionItem" name="formAcquisitionItem"></select>
+                  </div>
                 </div>
               </div>
               <div class="form-col">
                 <div class="form-group">
                   <label for="formAmount">Amount:</label>
-                  <input type="number" id="formAmount" name="formAmount" min="1" max="999999999" step="1" required>
+                  <div class="stepper-group">
+                    <button type="button" class="stepper-btn stepper-minus" data-target="formAmount">−</button>
+                    <input type="number" id="formAmount" name="formAmount" min="1" step="1" required>
+                    <button type="button" class="stepper-btn stepper-plus" data-target="formAmount">+</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -106,8 +103,12 @@
             <div class="form-row">
               <div class="form-col">
                 <div class="form-group">
-                  <label for="formPayment">Payment:</label>
-                  <input type="number" id="formPayment" name="formPayment" min="0" max="999999999" step="1" placeholder="Optional">
+                  <label for="formPayment">Payment (SC):</label>
+                  <div class="stepper-group">
+                    <button type="button" class="stepper-btn stepper-minus" data-target="formPayment">−</button>
+                    <input type="number" id="formPayment" name="formPayment" min="0" step="1" placeholder="0">
+                    <button type="button" class="stepper-btn stepper-plus" data-target="formPayment">+</button>
+                  </div>
                 </div>
               </div>
               <div class="form-col">
@@ -119,14 +120,36 @@
               <div class="form-col">
                 <div class="form-group">
                   <label for="formFirstName">Faction First Name:</label>
-                  <select id="formFirstName" name="formFirstName"></select>
+                  <div class="select-wrapper">
+                    <select id="formFirstName" name="formFirstName"></select>
+                  </div>
                 </div>
               </div>
               <div class="form-col">
                 <div class="form-group">
                   <label for="formSecondName">Faction Second Name:</label>
-                  <select id="formSecondName" name="formSecondName"></select>
+                  <div class="select-wrapper">
+                    <select id="formSecondName" name="formSecondName"></select>
+                  </div>
                 </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-col">
+                <div class="form-group">
+                  <label for="formStationName">Station Name <small style="color:#888;font-weight:normal">(optional override)</small>:</label>
+                  <input type="text" id="formStationName" name="formStationName" list="knownStations" placeholder="e.g. FRAC Oberlin Station (overrides faction display)" autocomplete="off">
+                  <datalist id="knownStations"></datalist>
+                </div>
+                <div class="form-group gps-group">
+                  <label for="formStationGPS" style="font-size:0.85em;color:#aaa">Station GPS:</label>
+                  <input type="text" id="formStationGPS" name="formStationGPS" placeholder="GPS:Name:X:Y:Z:#RRGGBB:">
+                  <button type="button" class="gps-copy-btn" data-target="formStationGPS" title="Copy GPS to clipboard">&#128203;</button>
+                </div>
+              </div>
+              <div class="form-col">
+                <!-- Empty -->
               </div>
             </div>
             
@@ -144,8 +167,20 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="form-row">
+              <div class="form-col">
+                <div class="form-group">
+                  <label for="formPlayerBase">Player Base <small style="color:#888;font-weight:normal">(optional)</small>:</label>
+                  <input type="text" id="formPlayerBase" name="formPlayerBase" list="knownPlayerBases" placeholder="e.g. Hauler Alpha" autocomplete="off">
+                  <datalist id="knownPlayerBases"></datalist>
+                </div>
+                <div class="form-group gps-group">
+                  <label for="formPlayerBaseGPS" style="font-size:0.85em;color:#aaa">Player Base GPS:</label>
+                  <input type="text" id="formPlayerBaseGPS" name="formPlayerBaseGPS" placeholder="GPS:Name:X:Y:Z:#RRGGBB:">
+                  <button type="button" class="gps-copy-btn" data-target="formPlayerBaseGPS" title="Copy GPS to clipboard">&#128203;</button>
+                </div>
+              </div>
               <div class="form-col">
                 <div class="form-group">
                   <label for="formDate">Date Accepted:</label>

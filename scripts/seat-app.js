@@ -39,24 +39,67 @@ function setupEventListeners() {
     event.preventDefault();
     storeFormData();
   });
-  
+
   // Import button
   document.getElementById('import-button').addEventListener('click', function() {
     document.getElementById('import-file').click();
   });
-  
+
   // Import file change
   document.getElementById('import-file').addEventListener('change', importJSONObjects);
-  
+
   // Export button
   document.getElementById('export-button').addEventListener('click', JSONExport);
-  
+
   // Clear storage button
   document.getElementById('clear-storage').addEventListener('click', clearLocalStorage);
-  
+
   // Cancel edit button
   document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
-  
+
+  // GPS copy buttons in the form
+  setupGPSCopyButtons();
+
+  // Stepper +/- buttons for Amount and Payment
+  setupStepperButtons();
+
+  // Auto-fill GPS when known station/base name is selected
+  setupGPSAutofill();
+
+  // GPS inline copy in the mission table (event delegation)
+  document.getElementById('current-mission-list').addEventListener('click', function(e) {
+    const btn = e.target.closest('.gps-inline-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    const gps = btn.dataset.gps || '';
+    if (!gps) return;
+    const originalText = btn.textContent;
+    const doCopy = (text) => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(gps).then(() => {
+        btn.textContent = '\u2713';
+        setTimeout(() => { btn.textContent = originalText; }, 1500);
+      }).catch(() => {
+        doCopy(gps);
+        btn.textContent = '\u2713';
+        setTimeout(() => { btn.textContent = originalText; }, 1500);
+      });
+    } else {
+      doCopy(gps);
+      btn.textContent = '\u2713';
+      setTimeout(() => { btn.textContent = originalText; }, 1500);
+    }
+  });
+
   // Set up collapsible sections after all other UI elements are ready
   setupCollapsibleSections();
 }
@@ -301,6 +344,8 @@ function pageSetupFactionSecondNameSelectList() {
       <strong>[B]</strong> - Builder/Industry focused factions<br>
       <strong>[M]</strong> - Mining/Resource focused factions<br>
       <strong>[T]</strong> - Trading/Commerce focused factions<br>
+      <strong>[P]</strong> - Pirate factions<br>
+      <strong>[Mil]</strong> - Military factions<br>
       <br>
       Select a faction type that matches your mission context.
     `;
@@ -332,15 +377,23 @@ function initializeFormDropdowns() {
   pageSetupPlanetSelectList();
   pageSetupFactionFirstNameSelectList();
   pageSetupFactionSecondNameSelectList();
-  
+
   // Set today's date as default
   const today = new Date();
-  const formattedDate = today.toISOString().slice(0, 10); // Format: YYYY-MM-DD (date only, no time)
+  const formattedDate = today.toISOString().slice(0, 10);
   document.getElementById('formDate').value = formattedDate;
-  
-  // Setup search functionality
-  setupItemSearch();
+
+  // Initialize searchable custom dropdowns (replaces the old item-search bar)
+  initSearchableDropdown('formAcquisitionItem', 'Type to search items…');
+  initSearchableDropdown('formFirstName', 'Type to filter first name…');
+  initSearchableDropdown('formSecondName', 'Type to filter second name…');
+
+  // Mission table text search
   setupMissionSearch();
+
+  // Populate known-station / known-base autocomplete lists
+  updateKnownStationNames();
+  updateKnownPlayerBases();
 }
 
 // Setup item search
@@ -515,6 +568,288 @@ function setupMissionSearch() {
   });
 }
 
+// ── Searchable custom dropdown ──────────────────────────────────────────────
+// Transforms a <select> inside a .select-wrapper into a type-to-filter combobox.
+function initSearchableDropdown(selectId, placeholder) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  const wrapper = select.closest('.select-wrapper');
+  if (!wrapper) return;
+
+  // Avoid double-init: if search input already present, just refresh display
+  if (wrapper.querySelector('.select-search')) {
+    if (select._sdUpdateDisplay) select._sdUpdateDisplay();
+    return;
+  }
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.className = 'select-search';
+  searchInput.placeholder = placeholder || 'Search…';
+  searchInput.setAttribute('autocomplete', 'off');
+  searchInput.setAttribute('aria-expanded', 'false');
+  searchInput.setAttribute('role', 'combobox');
+
+  const optionsDiv = document.createElement('div');
+  optionsDiv.className = 'filtered-options';
+  optionsDiv.setAttribute('role', 'listbox');
+
+  wrapper.style.position = 'relative';
+  wrapper.insertBefore(searchInput, select);
+  wrapper.insertBefore(optionsDiv, select);
+  select.style.display = 'none';
+
+  let keyboardIndex = -1;
+
+  function getAllOptions() {
+    const result = [];
+    Array.from(select.options).forEach(opt => {
+      if (opt.disabled) {
+        result.push({ isGroup: true, label: opt.textContent });
+      } else {
+        result.push({
+          isGroup: false,
+          label: opt.textContent,
+          value: opt.value,
+          dataFullname: opt.getAttribute('data-fullname') || ''
+        });
+      }
+    });
+    return result;
+  }
+
+  function renderOptions(filter) {
+    optionsDiv.innerHTML = '';
+    keyboardIndex = -1;
+    const lc = (filter || '').toLowerCase().trim();
+    const all = getAllOptions();
+    let visibleCount = 0;
+    let lastGroupEl = null;
+
+    all.forEach(item => {
+      if (item.isGroup) {
+        lastGroupEl = document.createElement('div');
+        lastGroupEl.className = 'option-group';
+        lastGroupEl.textContent = item.label;
+        optionsDiv.appendChild(lastGroupEl);
+      } else {
+        if (!lc || item.label.toLowerCase().includes(lc)) {
+          const div = document.createElement('div');
+          div.textContent = item.label;
+          div.dataset.value = item.value;
+          if (item.dataFullname) div.dataset.fullname = item.dataFullname;
+          if (item.value === select.value) div.classList.add('selected-option');
+          div.setAttribute('role', 'option');
+          div.addEventListener('mousedown', e => {
+            e.preventDefault();
+            selectOption(item.value);
+          });
+          optionsDiv.appendChild(div);
+          visibleCount++;
+          lastGroupEl = null; // mark group as having items
+        }
+      }
+    });
+
+    // Remove trailing group headers (group with no following items)
+    Array.from(optionsDiv.querySelectorAll('.option-group')).forEach(g => {
+      const next = g.nextElementSibling;
+      if (!next || next.classList.contains('option-group')) g.remove();
+    });
+
+    if (visibleCount === 0) {
+      const none = document.createElement('div');
+      none.className = 'no-results';
+      none.textContent = 'No matches';
+      optionsDiv.appendChild(none);
+    }
+  }
+
+  function selectOption(value) {
+    select.value = value;
+    updateDisplay();
+    closeDropdown();
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function updateDisplay() {
+    const sel = select.options[select.selectedIndex];
+    searchInput.value = (sel && !sel.disabled) ? sel.textContent : '';
+  }
+
+  function openDropdown() {
+    renderOptions(searchInput.value);
+    optionsDiv.style.display = 'block';
+    searchInput.setAttribute('aria-expanded', 'true');
+    keyboardIndex = -1;
+  }
+
+  function closeDropdown() {
+    optionsDiv.style.display = 'none';
+    searchInput.setAttribute('aria-expanded', 'false');
+    updateDisplay(); // restore display text if user typed but didn't pick
+  }
+
+  function moveKeyboardFocus(delta) {
+    const items = Array.from(optionsDiv.querySelectorAll('[role="option"]'));
+    if (!items.length) return;
+    items.forEach(i => i.classList.remove('keyboard-focus'));
+    keyboardIndex = Math.max(0, Math.min(items.length - 1, keyboardIndex + delta));
+    items[keyboardIndex].classList.add('keyboard-focus');
+    items[keyboardIndex].scrollIntoView({ block: 'nearest' });
+  }
+
+  searchInput.addEventListener('focus', openDropdown);
+  searchInput.addEventListener('input', function() {
+    openDropdown();
+    renderOptions(this.value);
+  });
+  searchInput.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveKeyboardFocus(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); moveKeyboardFocus(-1); }
+    else if (e.key === 'Enter') {
+      e.preventDefault();
+      const focused = optionsDiv.querySelector('.keyboard-focus');
+      if (focused) selectOption(focused.dataset.value);
+      else closeDropdown();
+    } else if (e.key === 'Escape') {
+      e.preventDefault(); closeDropdown();
+    } else if (e.key === 'Tab') {
+      closeDropdown();
+    }
+  });
+  searchInput.addEventListener('blur', () => setTimeout(closeDropdown, 150));
+
+  // Expose helpers on the element for external programmatic use
+  select._sdUpdateDisplay = updateDisplay;
+  select._sdSelectOption = selectOption;
+  updateDisplay();
+}
+
+// Programmatically set a searchable dropdown's value and refresh its display text.
+function setSearchableValue(selectId, value) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  select.value = value;
+  if (select._sdUpdateDisplay) select._sdUpdateDisplay();
+}
+
+// Rebuild the #knownStations datalist from all saved mission stationName values.
+function updateKnownStationNames() {
+  const datalist = document.getElementById('knownStations');
+  if (!datalist) return;
+  const names = new Set();
+  Object.values(window.SJFI_data.missions || {}).forEach(arr =>
+    arr.forEach(m => { if (m.stationName) names.add(m.stationName); })
+  );
+  datalist.innerHTML = '';
+  names.forEach(n => { const o = document.createElement('option'); o.value = n; datalist.appendChild(o); });
+}
+
+// Rebuild the #knownPlayerBases datalist from all saved mission playerBase values.
+function updateKnownPlayerBases() {
+  const datalist = document.getElementById('knownPlayerBases');
+  if (!datalist) return;
+  const names = new Set();
+  Object.values(window.SJFI_data.missions || {}).forEach(arr =>
+    arr.forEach(m => { if (m.playerBase) names.add(m.playerBase); })
+  );
+  datalist.innerHTML = '';
+  names.forEach(n => { const o = document.createElement('option'); o.value = n; datalist.appendChild(o); });
+}
+
+// Attach GPS copy handlers to all .gps-copy-btn elements in the form.
+function setupGPSCopyButtons() {
+  document.querySelectorAll('.gps-copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const input = document.getElementById(this.dataset.target);
+      if (!input || !input.value.trim()) return;
+      const text = input.value.trim();
+      const el = this;
+      const onCopied = () => {
+        el.classList.add('copied');
+        const orig = el.innerHTML;
+        el.textContent = '\u2713';
+        setTimeout(() => { el.classList.remove('copied'); el.innerHTML = orig; }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(onCopied).catch(() => {
+          legacyCopy(text); onCopied();
+        });
+      } else {
+        legacyCopy(text); onCopied();
+      }
+    });
+  });
+}
+
+function legacyCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+}
+
+// Auto-fill GPS fields when a known station name or player base is chosen from the datalist.
+function setupGPSAutofill() {
+  // Helper: scan missions for the first GPS value matching a given field name/value pair
+  function lookupGPS(nameField, gpsField, name) {
+    for (const arr of Object.values(window.SJFI_data.missions || {})) {
+      for (const m of arr) {
+        if (m[nameField] === name && m[gpsField]) return m[gpsField];
+      }
+    }
+    return null;
+  }
+
+  const stationNameEl  = document.getElementById('formStationName');
+  const stationGPSEl   = document.getElementById('formStationGPS');
+  const baseNameEl     = document.getElementById('formPlayerBase');
+  const baseGPSEl      = document.getElementById('formPlayerBaseGPS');
+
+  if (stationNameEl && stationGPSEl) {
+    stationNameEl.addEventListener('input', function() {
+      const name = this.value.trim();
+      if (!name || stationGPSEl.value.trim()) return; // don't clobber an existing value
+      const found = lookupGPS('stationName', 'stationGPS', name);
+      if (found) stationGPSEl.value = found;
+    });
+  }
+
+  if (baseNameEl && baseGPSEl) {
+    baseNameEl.addEventListener('input', function() {
+      const name = this.value.trim();
+      if (!name || baseGPSEl.value.trim()) return;
+      const found = lookupGPS('playerBase', 'playerBaseGPS', name);
+      if (found) baseGPSEl.value = found;
+    });
+  }
+}
+
+// Attach +/- click handlers for all .stepper-group elements.
+function setupStepperButtons() {
+  document.querySelectorAll('.stepper-group').forEach(group => {
+    group.addEventListener('click', function(e) {
+      const btn = e.target.closest('.stepper-btn');
+      if (!btn) return;
+      const input = document.getElementById(btn.dataset.target);
+      if (!input) return;
+      const current = parseInt(input.value, 10) || 0;
+      const minVal = parseInt(input.min, 10);
+      if (btn.classList.contains('stepper-minus')) {
+        const next = current - 1;
+        input.value = (!isNaN(minVal) && next < minVal) ? minVal : next;
+      } else {
+        input.value = current + 1;
+      }
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  });
+}
+
 // Save form data
 function storeFormData() {
   const itemName = document.getElementById("formAcquisitionItem").value;
@@ -525,6 +860,10 @@ function storeFormData() {
   const planet = document.getElementById("formPlanet").value;
   const dateAccepted = document.getElementById("formDate").value;
   const description = document.getElementById("formDescription").value;
+  const stationName = document.getElementById("formStationName")?.value?.trim() || "";
+  const stationGPS = document.getElementById("formStationGPS")?.value?.trim() || "";
+  const playerBase = document.getElementById("formPlayerBase")?.value?.trim() || "";
+  const playerBaseGPS = document.getElementById("formPlayerBaseGPS")?.value?.trim() || "";
 
   // Form validation
   if (!itemName || !amountValue) {
@@ -563,7 +902,11 @@ function storeFormData() {
     // Store category information from the actually selected option
     itemCategory: document.getElementById("formAcquisitionItem").selectedOptions[0]?.getAttribute('data-category') || "",
     firstNameFull: firstName ? document.querySelector(`#formFirstName option[value="${firstName}"]`)?.getAttribute('data-fullname') || "" : "",
-    secondNameFull: secondName ? document.querySelector(`#formSecondName option[value="${secondName}"]`)?.getAttribute('data-fullname') || "" : ""
+    secondNameFull: secondName ? document.querySelector(`#formSecondName option[value="${secondName}"]`)?.getAttribute('data-fullname') || "" : "",
+    stationName: stationName,
+    stationGPS: stationGPS,
+    playerBase: playerBase,
+    playerBaseGPS: playerBaseGPS
   };
   
   // Check if we're editing an existing mission or adding a new one
@@ -618,6 +961,8 @@ function storeFormData() {
   
   reloadTableData();
   storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+  updateKnownStationNames();
+  updateKnownPlayerBases();
 }
 
 // Load data from localStorage
@@ -658,7 +1003,7 @@ function displayCurrentMissions() {
   table.id = "missions-table";
 
   // Add Info column between Date and Actions
-  const headers = ["Item", "Amount", "Payment", "Faction", "Planet", "Info", "Produced", "Loaded", "Actions"];
+  const headers = ["Item", "Amount", "Payment", "Faction/Station", "Player Base", "Planet", "Info", "Produced", "Loaded", "Actions"];
   const headerRow = document.createElement("tr");
   
   headers.forEach((headerText, index) => {
@@ -753,6 +1098,39 @@ function displayCurrentMissions() {
         factionDisplay = `<span class="faction-full">${factionCode} - ${mission.firstName || ""} ${mission.secondName || ""}</span><span class="faction-code">${factionCode}</span>`;
       }
 
+      // Escape helper for inline HTML
+      const escAttr = s => (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+      const escText = s => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+      // Faction/Station cell: if station name is set it overrides the faction display.
+      // Hovering the station name shows full faction info as tooltip.
+      let factionCellHTML;
+      if (mission.stationName) {
+        let factionPlain = '';
+        if (mission.firstNameFull && mission.secondNameFull) {
+          const cf = mission.firstNameFull.replace(/\s*\([^)]+\)/g, '').trim();
+          const cs = mission.secondNameFull.replace(/\s*\([^)]+\)/g, '').trim();
+          factionPlain = `${factionCode} - ${cf} ${cs}`;
+        } else {
+          factionPlain = `${mission.firstName || ''} ${mission.secondName || ''}`.trim();
+        }
+        const stationGpsBtn = mission.stationGPS
+          ? ` <button class="gps-inline-btn" data-gps="${escAttr(mission.stationGPS)}" title="Copy station GPS">&#128205;</button>`
+          : '';
+        factionCellHTML = `<span class="station-name tooltip-container">${escText(mission.stationName)}${stationGpsBtn}<span class="tooltip-text">${escText(factionPlain)}</span></span>`;
+      } else {
+        factionCellHTML = factionDisplay;
+      }
+
+      // Player Base cell
+      let playerBaseCellHTML = '';
+      if (mission.playerBase) {
+        const baseGpsBtn = mission.playerBaseGPS
+          ? ` <button class="gps-inline-btn" data-gps="${escAttr(mission.playerBaseGPS)}" title="Copy base GPS">&#128205;</button>`
+          : '';
+        playerBaseCellHTML = `${escText(mission.playerBase)}${baseGpsBtn}`;
+      }
+
       // Add mission data to the row with proper item name
       const formatNumber = (num) => {
         // Remove all non-numeric characters, then add 1000-comma separation
@@ -764,14 +1142,15 @@ function displayCurrentMissions() {
         getItemWithCategory(itemName, mission.itemCategory),
         formatNumber(mission.amount),
         mission.payment ? formatNumber(mission.payment) : '',
-        factionDisplay, // Use the new factionDisplay HTML string
-        mission.planet || '',
+        factionCellHTML,      // index 3: Faction/Station (HTML)
+        playerBaseCellHTML,   // index 4: Player Base (HTML)
+        mission.planet || '', // index 5: Planet
       ];
       
       data.forEach((cellData, cellIndex) => {
         const cell = document.createElement("td");
-        if (cellIndex === 3) { // Faction column
-          cell.innerHTML = cellData; // Set as HTML for the spans
+        if (cellIndex === 3 || cellIndex === 4) {
+          cell.innerHTML = cellData; // HTML content for faction/station and player base
         } else {
           cell.textContent = cellData;
         }
@@ -860,9 +1239,18 @@ function displayCurrentMissions() {
       loadedCell.appendChild(loadedButton);
       row.appendChild(loadedCell);
       
-      // Add action buttons (only remove button, edit functionality available via double-click)
+      // Add action buttons
       const actionsCell = document.createElement("td");
-      
+
+      // Edit button (explicit discoverability - edit is also on dblclick/longpress)
+      const editButton = document.createElement("button");
+      editButton.textContent = "Edit";
+      editButton.classList.add("edit-btn");
+      editButton.onclick = function() {
+        loadMissionToForm(itemName, mission, index);
+      };
+      actionsCell.appendChild(editButton);
+
       // Create remove button
       const removeButton = document.createElement("button");
       removeButton.textContent = "Remove";
@@ -968,78 +1356,35 @@ function clearLocalStorage() {
 
 // Function to clear the item search field and reset dropdown
 function clearItemSearch() {
-  const searchInput = document.getElementById('itemSearch');
-  const clearButton = document.getElementById('itemSearchClear');
-  
-  if (searchInput) {
-    searchInput.value = '';
-    // Remove clear button visibility
-    if (clearButton) {
-      clearButton.classList.remove('visible');
-    }
-    // Reset the dropdown options to show all items
-    const selectElement = document.getElementById('formAcquisitionItem');
-    if (selectElement) {
-      // Store the current selection if any
-      const currentSelection = selectElement.value;
-      
-      // Clear and regenerate the dropdown
-      selectElement.innerHTML = '';
-      
-      Object.keys(window.SE_Data_References.Contract["Acquisition Request Item"]).forEach(category => {
-        // Add category as non-selectable header
-        const categoryOption = document.createElement("option");
-        categoryOption.value = category;
-        categoryOption.disabled = true;
-        categoryOption.textContent = `--- ${category} ---`;
-        selectElement.appendChild(categoryOption);
-
-        // Add items under the category
-        const items = window.SE_Data_References.Contract["Acquisition Request Item"][category];
-        Object.keys(items).forEach(item => {
-          if (items[item] !== null) {
-            const itemOption = document.createElement("option");
-            itemOption.value = `${items[item]}`;
-            itemOption.textContent = `${items[item]}`;
-            itemOption.setAttribute('data-category', category);
-            selectElement.appendChild(itemOption);
-          }
-        });
-      });
-      
-      // Restore selection if possible
-      if (currentSelection) {
-        for (const option of selectElement.options) {
-          if (option.value === currentSelection) {
-            option.selected = true;
-            break;
-          }
-        }
-      }
-    }
-  }
+  const select = document.getElementById('formAcquisitionItem');
+  if (!select) return;
+  select.selectedIndex = 0;
+  if (select._sdUpdateDisplay) select._sdUpdateDisplay();
 }
 
 // Function to cancel editing and reset form to add mode
 function cancelEdit() {
   // Clear editing state
   window.currentlyEditingMission = null;
-  
+
+  // Clear new optional fields before reset
+  ['formStationName', 'formStationGPS', 'formPlayerBase', 'formPlayerBaseGPS'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
   // Reset form
   document.getElementById('missionForm').reset();
-  
-  // Clear item search
-  clearItemSearch();
-  
+
   // Reset submit button text
   const submitButton = document.querySelector('#missionForm input[type="submit"]');
   submitButton.value = "Add Mission";
-  
+
   // Hide edit mode indicator and cancel button
   document.getElementById('edit-mode-indicator').style.display = 'none';
   document.getElementById('cancel-edit-btn').style.display = 'none';
-  
-  // Reload form dropdowns to ensure they're properly populated
+
+  // Reload form dropdowns (also re-initializes searchable dropdowns)
   initializeFormDropdowns();
 }
 
@@ -1049,25 +1394,32 @@ function softResetForm() {
   const currentPlanet = document.getElementById("formPlanet").value;
   const currentFirstName = document.getElementById("formFirstName").value;
   const currentSecondName = document.getElementById("formSecondName").value;
-  
+  const currentStationName = document.getElementById("formStationName")?.value || "";
+  const currentPlayerBase = document.getElementById("formPlayerBase")?.value || "";
+
   // Reset the form completely
   document.getElementById('missionForm').reset();
-  
-  // Clear item search
-  clearItemSearch();
-  
+
   // Restore preserved values
   document.getElementById("formPlanet").value = currentPlanet;
   document.getElementById("formFirstName").value = currentFirstName;
   document.getElementById("formSecondName").value = currentSecondName;
-  
+  document.getElementById("formStationName").value = currentStationName;
+  document.getElementById("formPlayerBase").value = currentPlayerBase;
+
   // Set today's date
   const today = new Date();
   const formattedDate = today.toISOString().slice(0, 10);
   document.getElementById('formDate').value = formattedDate;
-  
-  // Ensure first item is selected (index 0 should be a category header)
-  document.getElementById("formAcquisitionItem").selectedIndex = 0;
+
+  // Reset item dropdown to first entry (category header)
+  const itemSelect = document.getElementById("formAcquisitionItem");
+  itemSelect.selectedIndex = 0;
+  if (itemSelect._sdUpdateDisplay) itemSelect._sdUpdateDisplay();
+
+  // Update searchable dropdown display texts to match restored values
+  setSearchableValue('formFirstName', currentFirstName);
+  setSearchableValue('formSecondName', currentSecondName);
 }
 
 // Load mission data into form for editing
@@ -1160,7 +1512,21 @@ function loadMissionToForm(itemName, mission, index) {
   
   // Set description
   document.getElementById("formDescription").value = mission.description || "";
-  
+
+  // Populate new optional fields
+  document.getElementById("formStationName").value = mission.stationName || "";
+  document.getElementById("formStationGPS").value = mission.stationGPS || "";
+  document.getElementById("formPlayerBase").value = mission.playerBase || "";
+  document.getElementById("formPlayerBaseGPS").value = mission.playerBaseGPS || "";
+
+  // Update searchable dropdown display texts to match the native select values just set
+  const itemSel = document.getElementById("formAcquisitionItem");
+  if (itemSel._sdUpdateDisplay) itemSel._sdUpdateDisplay();
+  const firstSel = document.getElementById("formFirstName");
+  if (firstSel._sdUpdateDisplay) firstSel._sdUpdateDisplay();
+  const secondSel = document.getElementById("formSecondName");
+  if (secondSel._sdUpdateDisplay) secondSel._sdUpdateDisplay();
+
   // Change submit button text to indicate editing
   const submitButton = document.querySelector('#missionForm input[type="submit"]');
   submitButton.value = "Update Mission";

@@ -204,7 +204,7 @@ table {
   background-color: rgba(0, 0, 0, 0.5);
   margin-top: 20px;
   border-radius: 5px;
-  overflow: hidden;
+  /* overflow: hidden removed — it clips tooltips that extend above the header row */
 }
 
 th, td {
@@ -217,6 +217,7 @@ th {
   color: white;
   position: sticky;
   top: 0;
+  z-index: 2; /* Keep sticky header above normal content but below tooltips */
 }
 
 tr:nth-child(even) {
@@ -385,7 +386,7 @@ button.produced-btn.checked:hover {
   background-color: #111;
   position: absolute;
   width: 100%;
-  z-index: 10;
+  z-index: 200; /* above sticky table headers (z-index:2) */
   display: none;
 }
 
@@ -394,8 +395,20 @@ button.produced-btn.checked:hover {
   cursor: pointer;
 }
 
-.filtered-options div:hover {
+.filtered-options div:hover,
+.filtered-options div.keyboard-focus {
   background-color: #333;
+}
+
+.filtered-options div.selected-option {
+  background-color: #1a3260;
+  color: #fff;
+}
+
+.filtered-options div.no-results {
+  color: #888;
+  font-style: italic;
+  cursor: default;
 }
 
 .option-group {
@@ -403,6 +416,7 @@ button.produced-btn.checked:hover {
   color: #4b6cb7;
   background-color: #0a0a0a;
   padding: 8px 12px;
+  cursor: default;
 }
 
 /* Tooltip styling */
@@ -420,7 +434,7 @@ button.produced-btn.checked:hover {
   border-radius: 6px;
   padding: 10px;
   position: absolute;
-  z-index: 1000;
+  z-index: 2000; /* above sticky headers (2) and dropdowns (200) */
   bottom: 125%;
   left: 50%;
   transform: translateX(-50%);
@@ -431,6 +445,7 @@ button.produced-btn.checked:hover {
   border: 1px solid #555;
   max-width: 90vw; /* Prevent tooltips from exceeding viewport width on mobile */
   white-space: pre-wrap; /* Preserve line breaks and wrap text */
+  pointer-events: none; /* prevent tooltip stealing hover state */
 }
 
 .tooltip-container:hover .tooltip-text {
@@ -540,7 +555,141 @@ td.tooltip-container {
 
 /* Make sure tooltips appear above collapsible sections */
 .tooltip-text {
-  z-index: 1000;
+  z-index: 2000;
+}
+
+/* ── Stepper input groups ── */
+.stepper-group {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.stepper-group input[type="number"] {
+  flex: 1;
+  border-radius: 0;
+  text-align: center;
+  -moz-appearance: textfield;
+  min-width: 0;
+}
+
+.stepper-group input[type="number"]::-webkit-outer-spin-button,
+.stepper-group input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.stepper-btn {
+  background-color: #2d4a7a;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 0 14px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  min-width: 40px;
+  transition: background-color 0.2s;
+  margin: 0;
+  border-radius: 0;
+}
+
+.stepper-btn:first-child {
+  border-radius: 5px 0 0 5px;
+}
+
+.stepper-group input[type="number"]:last-of-type + .stepper-btn,
+.stepper-btn:last-child {
+  border-radius: 0 5px 5px 0;
+}
+
+.stepper-btn:hover {
+  background-color: #4b6cb7;
+}
+
+.stepper-step {
+  background-color: #111;
+  color: #aaa;
+  border: 1px solid #444;
+  border-left: none;
+  padding: 0 8px;
+  font-size: 12px;
+  cursor: pointer;
+  min-width: 60px;
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M4 6l4 4 4-4z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  padding-right: 22px;
+}
+
+.stepper-step:focus {
+  outline: 1px solid #4b6cb7;
+}
+
+/* ── GPS input rows ── */
+.gps-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gps-group input {
+  flex: 1;
+  font-size: 12px;
+  font-family: monospace;
+  color: #adf;
+}
+
+.gps-copy-btn {
+  background: #1a3260;
+  border: 1px solid #4b6cb7;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin: 0;
+  transition: background 0.2s;
+  min-width: 36px;
+}
+
+.gps-copy-btn:hover {
+  background: #2d4a7a;
+}
+
+.gps-copy-btn.copied {
+  background: #2e7d32;
+}
+
+/* GPS copy icon inline in table cells */
+.gps-inline-btn {
+  background: none;
+  border: none;
+  color: #4b9cf5;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+  margin: 0;
+  line-height: 1;
+  vertical-align: middle;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.gps-inline-btn:hover {
+  opacity: 1;
+  background: none;
+}
+
+/* Station name display in the Faction/Station column */
+.station-name {
+  font-weight: 500;
+  color: #c8d8ff;
 }
 
 /* Responsive adjustments */
