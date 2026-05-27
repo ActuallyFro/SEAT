@@ -558,6 +558,225 @@ td.tooltip-container {
   z-index: 2000;
 }
 
+/* ── Help button (near page title) ── */
+.help-open-btn {
+  background: none;
+  border: 1px solid #4b6cb7;
+  color: #9bb5e8;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  margin-left: 10px;
+  vertical-align: middle;
+  padding: 0;
+  transition: background 0.2s, color 0.2s;
+}
+.help-open-btn:hover {
+  background: #1a3260;
+  color: #fff;
+}
+
+/* ── Help / About modal ── */
+.help-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50000; /* above everything */
+}
+.help-modal.is-open {
+  display: block;
+}
+.help-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+}
+.help-modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(740px, 96vw);
+  max-height: 88vh;
+  background: linear-gradient(160deg, #0a0f2e 0%, #0d1b3e 55%, #0a0a1a 100%);
+  border: 1px solid #2d4a7a;
+  border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(75,108,183,0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.help-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  line-height: 1;
+  margin: 0;
+  transition: color 0.2s, background 0.2s;
+}
+.help-modal-close:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+.help-tabs {
+  display: flex;
+  border-bottom: 1px solid #1e3060;
+  padding: 0 38px 0 8px;
+  gap: 0;
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.help-tabs::-webkit-scrollbar { display: none; }
+
+.help-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #667;
+  padding: 11px 14px 9px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+  transition: color 0.2s, border-color 0.2s;
+  margin: 0;
+}
+.help-tab:hover { color: #aac; }
+.help-tab.active { color: #c8d8ff; border-bottom-color: #4b6cb7; }
+
+.help-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 26px 18px;
+  line-height: 1.75;
+  color: #ccc;
+  font-size: 14px;
+}
+.help-body h2 {
+  color: #fff;
+  font-size: 1.25em;
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1e3060;
+}
+.help-body h3 {
+  color: #9bb5e8;
+  font-size: 0.95em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 20px 0 7px;
+}
+.help-body p  { margin: 0 0 10px; }
+.help-body ul,
+.help-body ol { margin: 0 0 12px; padding-left: 22px; }
+.help-body li { margin-bottom: 5px; }
+.help-body kbd {
+  background: #222;
+  border: 1px solid #555;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.85em;
+  color: #eee;
+}
+.help-body code {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.85em;
+  color: #adf;
+  font-family: monospace;
+}
+.help-body .help-tip {
+  background: rgba(75,108,183,0.15);
+  border-left: 3px solid #4b6cb7;
+  padding: 8px 12px;
+  border-radius: 0 5px 5px 0;
+  color: #aac;
+  font-size: 0.9em;
+}
+
+/* Faction & type badges inside help modal */
+.help-body .faction-badge {
+  display: inline-block;
+  background: #1a3260;
+  border: 1px solid #4b6cb7;
+  color: #c8d8ff;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9em;
+  letter-spacing: 0.05em;
+}
+.type-tag {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 4px;
+  font-size: 0.82em;
+  font-weight: bold;
+}
+.type-miner    { background: #0d2010; color: #7ec87e; border: 1px solid #2a5a2a; }
+.type-trader   { background: #2a1a08; color: #e8c070; border: 1px solid #5a3a10; }
+.type-builder  { background: #081828; color: #70a8e8; border: 1px solid #183858; }
+.type-pirate   { background: #280808; color: #e87070; border: 1px solid #581818; }
+.type-military { background: #100828; color: #a878e8; border: 1px solid #301858; }
+
+/* Faction table in the help modal */
+.help-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.help-table th {
+  background: #0a1428;
+  color: #9bb5e8;
+  text-align: left;
+  padding: 7px 10px;
+  border: 1px solid #1e3060;
+  position: static; /* override sticky th from missions table */
+}
+.help-table td {
+  padding: 6px 10px;
+  border: 1px solid #1a2848;
+  vertical-align: middle;
+}
+.help-table tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
+
+/* Nav bar at bottom of modal */
+.help-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 22px;
+  border-top: 1px solid #1e3060;
+  flex-shrink: 0;
+}
+.help-nav button {
+  background: #1a3260;
+  border: 1px solid #4b6cb7;
+  color: #c8d8ff;
+  padding: 7px 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+  margin: 0;
+}
+.help-nav button:hover:not(:disabled) { background: #2d4a7a; }
+.help-nav button:disabled { opacity: 0.3; cursor: default; }
+.help-page-indicator { color: #667; font-size: 12px; }
+
 /* ── Stepper input groups ── */
 .stepper-group {
   display: flex;
