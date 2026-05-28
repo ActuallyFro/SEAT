@@ -10,6 +10,139 @@ window.SJFI_data = {
 // Global array to track LongPress instances for updating duration
 window.longPressInstances = [];
 
+// ── Export tracking ──────────────────────────────────────────────────────────
+var LAST_EXPORT_KEY       = 'seatLastExportTime';
+var UNEXPORTED_CHG_KEY    = 'seatUnexportedChanges';
+var CHANGE_WARN_THRESHOLD = 5;
+var TIME_WARN_MINUTES     = 15;
+var _exportSnoozeUntil    = 0;   // epoch ms; 0 = not snoozed; Infinity = dismissed for session
+var _exportTimerID        = null;
+
+function getUnexportedChanges() {
+  return Math.max(0, parseInt(localStorage.getItem(UNEXPORTED_CHG_KEY) || '0', 10));
+}
+
+function getLastExportTime() {
+  return parseInt(localStorage.getItem(LAST_EXPORT_KEY) || '0', 10);
+}
+
+// delta: +1 for C/U/D operations, -1 when restoring a completed mission
+function incrementChangeCounter(delta) {
+  if (delta === undefined) delta = 1;
+  var n = getUnexportedChanges() + delta;
+  if (n < 0) n = 0;
+  localStorage.setItem(UNEXPORTED_CHG_KEY, String(n));
+  updateExportStatusBar();
+}
+
+function resetExportTracking() {
+  localStorage.setItem(LAST_EXPORT_KEY, String(Date.now()));
+  localStorage.setItem(UNEXPORTED_CHG_KEY, '0');
+  _exportSnoozeUntil = 0;
+  var toast = document.getElementById('exportTimeWarning');
+  if (toast) toast.style.display = 'none';
+  updateExportStatusBar();
+}
+
+function updateExportStatusBar() {
+  var changes = getUnexportedChanges();
+  var lastTs  = getLastExportTime();
+
+  // Keep legacy #backupWarning (inside collapsed Admin section) in sync
+  var legacyEl = document.getElementById('backupWarning');
+  if (legacyEl) legacyEl.style.display = changes > 0 ? '' : 'none';
+
+  var container = document.getElementById('exportContainer');
+  var bar       = document.getElementById('exportStatusBar');
+  if (!bar) return;
+
+  if (changes === 0) {
+    if (container) container.style.display = 'none';
+    return;
+  }
+
+  // Format last-export age
+  var lastExportText;
+  if (lastTs > 0) {
+    var minsAgo = Math.floor((Date.now() - lastTs) / 60000);
+    if (minsAgo < 1)        lastExportText = 'just now';
+    else if (minsAgo === 1) lastExportText = '1 min ago';
+    else                    lastExportText = minsAgo + ' min ago';
+  } else {
+    lastExportText = 'never';
+  }
+
+  var isHighCount = changes > CHANGE_WARN_THRESHOLD;
+  bar.className   = 'export-status-bar' + (isHighCount ? ' export-warn-high' : '');
+
+  var textEl = document.getElementById('exportStatusText');
+  if (textEl) {
+    var icon = isHighCount ? '⚠' : '💾';
+    textEl.textContent = icon + '\u00a0' + changes + ' unsaved change' + (changes === 1 ? '' : 's')
+                       + ' \u2014 last exported: ' + lastExportText;
+  }
+
+  if (container) container.style.display = '';
+}
+
+function checkTimeBasedExportWarning() {
+  var changes = getUnexportedChanges();
+  if (changes === 0) return;
+
+  var now = Date.now();
+  if (_exportSnoozeUntil > now) return;
+
+  var lastTs      = getLastExportTime();
+  var elapsed     = lastTs > 0 ? (now - lastTs) : Infinity;
+  var minsElapsed = elapsed / 60000;
+
+  if (minsElapsed >= TIME_WARN_MINUTES) {
+    showTimeWarningToast(Math.round(minsElapsed));
+  }
+}
+
+function showTimeWarningToast(minsAgo) {
+  var toast = document.getElementById('exportTimeWarning');
+  if (!toast) return;
+  var msgEl = document.getElementById('exportTimeMsg');
+  if (msgEl) {
+    var timeText = (minsAgo >= 60)
+      ? (Math.floor(minsAgo / 60) + 'h ' + (minsAgo % 60) + 'm')
+      : (minsAgo + ' min');
+    msgEl.textContent = '⏰ ' + timeText + ' since last export — browser storage is not permanent!';
+  }
+  toast.style.display = '';
+}
+
+function snoozeExportWarning() {
+  _exportSnoozeUntil = Date.now() + (TIME_WARN_MINUTES * 60000);
+  var toast = document.getElementById('exportTimeWarning');
+  if (toast) toast.style.display = 'none';
+}
+
+function dismissExportWarning() {
+  _exportSnoozeUntil = Infinity; // suppress for entire session
+  var toast = document.getElementById('exportTimeWarning');
+  if (toast) toast.style.display = 'none';
+}
+
+function startExportReminderTimer() {
+  if (_exportTimerID) clearInterval(_exportTimerID);
+  _exportTimerID = setInterval(function() {
+    updateExportStatusBar();
+    checkTimeBasedExportWarning();
+  }, 60000); // check every 60 s
+  checkTimeBasedExportWarning(); // immediate check on load
+}
+
+// ── Aliases so all existing markDataDirty()/markDataClean() call sites still work ──
+function markDataDirty() { incrementChangeCounter(1); }
+function markDataClean()  { resetExportTracking(); }
+function checkBackupState() {
+  updateExportStatusBar();
+  startExportReminderTimer();
+}
+
 // Parse the JSON data - jsonDataString is loaded from SEAT-Data.js
 const parsedData = JSON.parse(jsonDataString);
 window.SE_Data_References = parsedData;
@@ -30,6 +163,9 @@ window.onload = function() {
   
   // Set up event listeners
   setupEventListeners();
+
+  // Show backup reminder if data has changed since last export
+  checkBackupState();
 };
 
 // Set up all event listeners
@@ -51,6 +187,18 @@ function setupEventListeners() {
   // Export button
   document.getElementById('export-button').addEventListener('click', JSONExport);
 
+  // Export-status bar: "Export Now" button (count bar)
+  var exportNowBtn = document.getElementById('exportNowBtn');
+  if (exportNowBtn) exportNowBtn.addEventListener('click', JSONExport);
+
+  // Time-warning toast buttons
+  var exportNowBtn2   = document.getElementById('exportNowBtn2');
+  var exportSnoozeBtn = document.getElementById('exportSnoozeBtn');
+  var exportDismissBtn = document.getElementById('exportDismissBtn');
+  if (exportNowBtn2)    exportNowBtn2.addEventListener('click', JSONExport);
+  if (exportSnoozeBtn)  exportSnoozeBtn.addEventListener('click', snoozeExportWarning);
+  if (exportDismissBtn) exportDismissBtn.addEventListener('click', dismissExportWarning);
+
   // Clear storage button
   document.getElementById('clear-storage').addEventListener('click', clearLocalStorage);
 
@@ -66,8 +214,11 @@ function setupEventListeners() {
   // Auto-fill GPS when known station/base name is selected
   setupGPSAutofill();
 
+  // Contract type toggle buttons
+  setupContractTypeSelector();
+
   // GPS inline copy in the mission table (event delegation)
-  document.getElementById('current-mission-list').addEventListener('click', function(e) {
+  const gpsCopyHandler = function(e) {
     const btn = e.target.closest('.gps-inline-btn');
     if (!btn) return;
     e.stopPropagation();
@@ -98,7 +249,10 @@ function setupEventListeners() {
       btn.textContent = '\u2713';
       setTimeout(() => { btn.textContent = originalText; }, 1500);
     }
-  });
+  };
+  document.getElementById('current-mission-list').addEventListener('click', gpsCopyHandler);
+  const completedListEl = document.getElementById('completed-mission-list');
+  if (completedListEl) completedListEl.addEventListener('click', gpsCopyHandler);
 
   // Set up collapsible sections after all other UI elements are ready
   setupCollapsibleSections();
@@ -111,6 +265,9 @@ function setupCollapsibleSections() {
   
   // Add collapsible functionality to the "Current Mission List" section
   convertToCollapsible('missionListContainer', 'Current Mission List');
+
+  // Add collapsible functionality to the "Completed Mission List" section
+  convertToCollapsible('completedMissionListContainer', 'Completed Mission List');
   
   // Add collapsible functionality to the "Admin Functions" section
   convertToCollapsible('adminFunctionsContainer', 'Admin Functions');
@@ -242,6 +399,71 @@ function convertToCollapsible(elementId, title) {
   }
 }
 
+// ── Contract Type Switch ─────────────────────────────────────────────────────
+// Switch the form between Acquisition, Courier, and Hauling modes.
+function switchContractType(type) {
+  const hidden = document.getElementById('formContractType');
+  if (hidden) hidden.value = type;
+
+  // Update active button
+  document.querySelectorAll('.contract-type-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.type === type);
+  });
+
+  var isTransport = (type === 'courier' || type === 'hauling');
+
+  // Show/hide field groups
+  var acqOnly = document.getElementById('acqOnlyFields');
+  var transportOnly = document.getElementById('transportOnlyFields');
+  if (acqOnly)       acqOnly.style.display       = isTransport ? 'none' : '';
+  if (transportOnly) transportOnly.style.display = isTransport ? ''     : 'none';
+
+  // Swap labels: Station Name ↔ Pickup Station
+  var stationText = document.getElementById('stationNameLabelText');
+  var stationSub  = document.getElementById('stationNameLabelSub');
+  var stationGPS  = document.getElementById('stationGPSLabel');
+  if (stationText) stationText.textContent = isTransport ? 'Pickup Station'  : 'Station Name';
+  if (stationSub)  stationSub.textContent  = isTransport ? ''                : '(optional override)';
+  if (stationGPS)  stationGPS.textContent  = isTransport ? 'Pickup GPS:'     : 'Station GPS:';
+
+  // Auto-fill cargo description for courier (always a Package); clear for others
+  var cargoEl = document.getElementById('formCargoDescription');
+  if (cargoEl) {
+    if (type === 'courier') {
+      cargoEl.value = 'Package (100Kg)';
+      cargoEl.readOnly = true;
+    } else {
+      cargoEl.readOnly = false;
+      if (type !== 'hauling' || cargoEl.value === 'Package (100Kg)') {
+        cargoEl.value = '';
+      }
+    }
+  }
+
+  // Swap labels: Player Base ↔ Delivery Point
+  var baseText = document.getElementById('playerBaseLabelText');
+  var baseSub  = document.getElementById('playerBaseLabelSub');
+  var baseGPS  = document.getElementById('playerBaseGPSLabel');
+  if (baseText) baseText.textContent = isTransport ? 'Delivery Point' : 'Player Base';
+  if (baseSub)  baseSub.textContent  = isTransport ? ''               : '(optional)';
+  if (baseGPS)  baseGPS.textContent  = isTransport ? 'Delivery GPS:'  : 'Player Base GPS:';
+
+  // Swap placeholders on text inputs
+  var stationInput = document.getElementById('formStationName');
+  var baseInput    = document.getElementById('formPlayerBase');
+  if (stationInput) stationInput.placeholder = isTransport ? 'e.g. Alpha Station (pickup)'   : 'e.g. FRAC Oberlin Station (overrides faction display)';
+  if (baseInput)    baseInput.placeholder    = isTransport ? 'e.g. Home Base (delivery point)' : 'e.g. Hauler Alpha';
+}
+
+// Wire click handlers for the contract-type selector buttons.
+function setupContractTypeSelector() {
+  document.querySelectorAll('.contract-type-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      switchContractType(this.dataset.type);
+    });
+  });
+}
+
 // Generate <select> options for formAcquisitionItem
 function pageSetupFormCreateItemSelectList() {
   const selectElement = document.getElementById("formAcquisitionItem");
@@ -320,6 +542,7 @@ function pageSetupFactionFirstNameSelectList() {
     option.setAttribute('data-fullname', name);
     selectElement.appendChild(option);
   });
+  selectElement.selectedIndex = -1; // start with nothing selected
 }
 
 // Generate <select> options for Faction Second Name dropdown
@@ -369,6 +592,7 @@ function pageSetupFactionSecondNameSelectList() {
     option.setAttribute('data-fullname', name);
     selectElement.appendChild(option);
   });
+  selectElement.selectedIndex = -1; // start with nothing selected
 }
 
 // Initialize all dropdowns
@@ -385,8 +609,8 @@ function initializeFormDropdowns() {
 
   // Initialize searchable custom dropdowns (replaces the old item-search bar)
   initSearchableDropdown('formAcquisitionItem', 'Type to search items…');
-  initSearchableDropdown('formFirstName', 'Type to filter first name…');
-  initSearchableDropdown('formSecondName', 'Type to filter second name…');
+  initSearchableDropdown('formFirstName', 'Type to filter first name…', true);
+  initSearchableDropdown('formSecondName', 'Type to filter second name…', true);
 
   // Mission table text search
   setupMissionSearch();
@@ -570,7 +794,7 @@ function setupMissionSearch() {
 
 // ── Searchable custom dropdown ──────────────────────────────────────────────
 // Transforms a <select> inside a .select-wrapper into a type-to-filter combobox.
-function initSearchableDropdown(selectId, placeholder) {
+function initSearchableDropdown(selectId, placeholder, clearable) {
   const select = document.getElementById(selectId);
   if (!select) return;
   const wrapper = select.closest('.select-wrapper');
@@ -598,6 +822,25 @@ function initSearchableDropdown(selectId, placeholder) {
   wrapper.insertBefore(searchInput, select);
   wrapper.insertBefore(optionsDiv, select);
   select.style.display = 'none';
+
+  // Optional clear (X) button overlaying the right side of the search input
+  if (clearable) {
+    wrapper.classList.add('clearable');
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'select-clear-btn';
+    clearBtn.textContent = '✕';
+    clearBtn.title = 'Clear selection';
+    clearBtn.addEventListener('mousedown', e => {
+      e.preventDefault();
+      select.selectedIndex = -1;
+      searchInput.value = '';
+      optionsDiv.style.display = 'none';
+      searchInput.setAttribute('aria-expanded', 'false');
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    wrapper.appendChild(clearBtn);
+  }
 
   let keyboardIndex = -1;
 
@@ -852,34 +1095,54 @@ function setupStepperButtons() {
 
 // Save form data
 function storeFormData() {
-  const itemName = document.getElementById("formAcquisitionItem").value;
-  const amountValue = document.getElementById("formAmount").value;
-  const paymentValue = document.getElementById("formPayment").value;
-  const firstName = document.getElementById("formFirstName").value;
-  const secondName = document.getElementById("formSecondName").value;
-  const planet = document.getElementById("formPlanet").value;
-  const dateAccepted = document.getElementById("formDate").value;
-  const description = document.getElementById("formDescription").value;
-  const stationName = document.getElementById("formStationName")?.value?.trim() || "";
-  const stationGPS = document.getElementById("formStationGPS")?.value?.trim() || "";
-  const playerBase = document.getElementById("formPlayerBase")?.value?.trim() || "";
-  const playerBaseGPS = document.getElementById("formPlayerBaseGPS")?.value?.trim() || "";
+  var contractType = (document.getElementById("formContractType") || {}).value || 'acquisition';
+  var isTransport  = (contractType === 'courier' || contractType === 'hauling');
 
-  // Form validation
-  if (!itemName || !amountValue) {
-    alert("Please select an acquisition item and specify the amount."); // This alert is for validation failure
-    return;
+  // Determine storage key: item name for acquisition, [Courier]/[Hauling] for transport
+  var itemName = isTransport
+    ? (contractType === 'courier' ? '[Courier]' : '[Hauling]')
+    : document.getElementById("formAcquisitionItem").value;
+
+  var amountValue  = isTransport ? null : document.getElementById("formAmount").value;
+  var paymentValue = document.getElementById("formPayment").value;
+  var firstName    = document.getElementById("formFirstName").value;
+  var secondName   = document.getElementById("formSecondName").value;
+  var planet       = document.getElementById("formPlanet").value;
+  var dateAccepted = document.getElementById("formDate").value;
+  var description  = document.getElementById("formDescription").value;
+  var stationName  = document.getElementById("formStationName")?.value?.trim()  || "";
+  var stationGPS   = document.getElementById("formStationGPS")?.value?.trim()   || "";
+  var playerBase   = document.getElementById("formPlayerBase")?.value?.trim()   || "";
+  var playerBaseGPS= document.getElementById("formPlayerBaseGPS")?.value?.trim()|| "";
+  var cargoDescription = document.getElementById("formCargoDescription")?.value?.trim() || "";
+  var riskLevel        = isTransport ? (document.getElementById("formRisk")?.value || "Low") : "";
+  var distance         = isTransport ? (parseInt(document.getElementById("formDistance")?.value) || 0) : null;
+
+  // ── Validation ───────────────────────────────────────────────────────────
+  if (!isTransport) {
+    if (!itemName || !amountValue) {
+      alert("Please select an acquisition item and specify the amount.");
+      return;
+    }
+  } else {
+    if (!cargoDescription) {
+      alert("Please enter a cargo description for the " + contractType + " contract.");
+      return;
+    }
   }
 
-  // Validate amount - ensure it's a positive integer
-  const numericAmount = parseInt(amountValue.toString().replace(/\D/g, ''));
-  if (isNaN(numericAmount) || numericAmount <= 0) {
-    alert("Please enter a valid positive number for the amount.");
-    return;
+  // Validate amount (acquisition only)
+  var numericAmount = 0;
+  if (!isTransport) {
+    numericAmount = parseInt(amountValue.toString().replace(/\D/g, ''));
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      alert("Please enter a valid positive number for the amount.");
+      return;
+    }
   }
 
   // Validate payment - ensure it's a non-negative integer or empty
-  let numericPayment = 0;
+  var numericPayment = 0;
   if (paymentValue && paymentValue.toString().trim() !== '') {
     numericPayment = parseInt(paymentValue.toString().replace(/\D/g, ''));
     if (isNaN(numericPayment) || numericPayment < 0) {
@@ -889,8 +1152,9 @@ function storeFormData() {
   }
 
   // Create mission object with all details
-  const mission = {
-    amount: numericAmount,
+  var mission = {
+    contractType: contractType,
+    amount: contractType === 'courier' ? 1 : (isTransport ? null : numericAmount),
     payment: numericPayment,
     firstName: firstName,
     secondName: secondName,
@@ -899,8 +1163,12 @@ function storeFormData() {
     description: description,
     produced: false, // Default to not produced
     loaded: false, // Default to not loaded
+    completed: false, // Default to not completed
     // Store category information from the actually selected option
-    itemCategory: document.getElementById("formAcquisitionItem").selectedOptions[0]?.getAttribute('data-category') || "",
+    itemCategory: isTransport ? "" : (document.getElementById("formAcquisitionItem").selectedOptions[0]?.getAttribute('data-category') || ""),
+    cargoDescription: cargoDescription,
+    riskLevel: riskLevel,
+    distance: distance,
     firstNameFull: firstName ? document.querySelector(`#formFirstName option[value="${firstName}"]`)?.getAttribute('data-fullname') || "" : "",
     secondNameFull: secondName ? document.querySelector(`#formSecondName option[value="${secondName}"]`)?.getAttribute('data-fullname') || "" : "",
     stationName: stationName,
@@ -918,6 +1186,7 @@ function storeFormData() {
         window.SJFI_data.missions[oldItemName][index]) {
       mission.loaded = window.SJFI_data.missions[oldItemName][index].loaded;
       mission.produced = window.SJFI_data.missions[oldItemName][index].produced;
+      mission.completed = window.SJFI_data.missions[oldItemName][index].completed || false;
     }
     
     // Remove the original mission
@@ -961,6 +1230,7 @@ function storeFormData() {
   
   reloadTableData();
   storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+  markDataDirty();
   updateKnownStationNames();
   updateKnownPlayerBases();
 }
@@ -972,6 +1242,32 @@ function loadFormData() {
   if (formData !== null) {
     window.SJFI_data = formData;
   }
+}
+
+// Find the item's category to create a proper item display name
+function getItemWithCategory(itemName, itemCategory) {
+  if (itemCategory) {
+    if ((itemCategory === "Ores" || itemCategory === "Ingots") &&
+        !itemName.includes(itemCategory.slice(0, -1))) {
+      return `${itemName} ${itemCategory.slice(0, -1)}`;
+    }
+    return itemName;
+  }
+  // CRITICAL: Try Ingots first, then Ores to prioritize Ingots when both exist
+  const categoryOrder = ["Ingots", "Ores", "Components", "Tools"];
+  for (const category of categoryOrder) {
+    const items = window.SE_Data_References.Contract["Acquisition Request Item"][category];
+    if (!items) continue;
+    for (const item of Object.keys(items)) {
+      if (items[item] === itemName) {
+        if ((category === "Ores" || category === "Ingots") && !itemName.includes(category.slice(0, -1))) {
+          return `${itemName} ${category.slice(0, -1)}`;
+        }
+        return itemName;
+      }
+    }
+  }
+  return itemName;
 }
 
 // Display all missions in a table
@@ -1003,7 +1299,7 @@ function displayCurrentMissions() {
   table.id = "missions-table";
 
   // Add Info column between Date and Actions
-  const headers = ["Item", "Amount", "Payment", "Faction/Station", "Player Base", "Planet", "Info", "Produced", "Loaded", "Actions"];
+  const headers = ["Type", "Item", "Amount", "Payment", "Risk", "Distance (Km)", "Faction/Station", "Player Base/Delivery Point", "Planet", "Info", "Produced", "Loaded", "Actions"];
   const headerRow = document.createElement("tr");
   
   headers.forEach((headerText, index) => {
@@ -1032,46 +1328,14 @@ function displayCurrentMissions() {
   
   table.appendChild(headerRow);
 
-  // Find the item's category to create a proper item display name
-  function getItemWithCategory(itemName, itemCategory) {
-    // If we have the category stored, use it
-    if (itemCategory) {
-      if ((itemCategory === "Ores" || itemCategory === "Ingots") && 
-          !itemName.includes(itemCategory.slice(0, -1))) {
-        return `${itemName} ${itemCategory.slice(0, -1)}`;
-      }
-      return itemName;
-    }
-    
-    // Fallback - search through all categories
-    // CRITICAL: Try Ingots first, then Ores to prioritize Ingots when both exist
-    const categoryOrder = ["Ingots", "Ores", "Components", "Tools"];
-    
-    for (const category of categoryOrder) {
-      const items = window.SE_Data_References.Contract["Acquisition Request Item"][category];
-      if (!items) continue;
-      
-      // Check if this item exists in this category
-      for (const item of Object.keys(items)) {
-        if (items[item] === itemName) {
-          // For ores and ingots, append the category if not already in the name
-          if ((category === "Ores" || category === "Ingots") && !itemName.includes(category.slice(0, -1))) {
-            return `${itemName} ${category.slice(0, -1)}`; // Remove the 's' from "Ores" or "Ingots"
-          }
-          // For Components and Tools, we leave as is since they already have descriptive names
-          return itemName;
-        }
-      }
-    }
-    
-    return itemName; // Fallback to original name if not found
-  }
-
   // Add table rows with mission data
   Object.keys(window.SJFI_data.missions).forEach(itemName => {
     const missionsForItem = window.SJFI_data.missions[itemName];
     
     missionsForItem.forEach((mission, index) => {
+      // Skip completed missions — they appear in the Completed Mission List
+      if (mission.completed) return;
+
       const row = document.createElement("tr");
       
       // Format the faction name for display
@@ -1138,19 +1402,33 @@ function displayCurrentMissions() {
         return numeric ? Number(numeric).toLocaleString() : '';
       };
 
+      const missionType = mission.contractType || 'acquisition';
+      const isTransportRow = (missionType === 'courier' || missionType === 'hauling');
+
+      // Type cell badge (used in dedicated Type column)
+      const typeLabel = missionType.charAt(0).toUpperCase() + missionType.slice(1);
+      const typeCellHTML = `<span class="mission-type-badge mission-type-${missionType}">${typeLabel}</span>`;
+
       const data = [
-        getItemWithCategory(itemName, mission.itemCategory),
-        formatNumber(mission.amount),
-        mission.payment ? formatNumber(mission.payment) : '',
-        factionCellHTML,      // index 3: Faction/Station (HTML)
-        playerBaseCellHTML,   // index 4: Player Base (HTML)
-        mission.planet || '', // index 5: Planet
+        '',                    // 0: Type  — rendered as typeCellHTML
+        isTransportRow ? '' : getItemWithCategory(itemName, mission.itemCategory), // 1: Item
+        isTransportRow ? '' : formatNumber(mission.amount),                        // 2: Amount
+        mission.payment ? formatNumber(mission.payment) : '',                      // 3: Payment
+        isTransportRow ? (mission.riskLevel || 'Low') : 'N/A',                    // 4: Risk
+        isTransportRow ? (mission.distance != null ? formatNumber(mission.distance) : '') : 'N/A', // 5: Distance
+        factionCellHTML,      // 6: Faction/Station (HTML)
+        playerBaseCellHTML,   // 7: Player Base (HTML)
+        mission.planet || '', // 8: Planet
       ];
       
       data.forEach((cellData, cellIndex) => {
         const cell = document.createElement("td");
-        if (cellIndex === 3 || cellIndex === 4) {
-          cell.innerHTML = cellData; // HTML content for faction/station and player base
+        if (cellIndex === 0) {
+          cell.innerHTML = typeCellHTML;    // Type badge for all mission types
+        } else if (cellIndex === 1 && isTransportRow) {
+          cell.innerHTML = escText(mission.cargoDescription || '—'); // cargo description
+        } else if (cellIndex === 6 || cellIndex === 7) {
+          cell.innerHTML = cellData;        // HTML content for faction/station and player base
         } else {
           cell.textContent = cellData;
         }
@@ -1209,6 +1487,7 @@ function displayCurrentMissions() {
         
         // Save the updated data
         storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+        markDataDirty();
       };
       
       producedCell.appendChild(producedButton);
@@ -1234,6 +1513,7 @@ function displayCurrentMissions() {
         
         // Save the updated data
         storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+        markDataDirty();
       };
       
       loadedCell.appendChild(loadedButton);
@@ -1251,6 +1531,18 @@ function displayCurrentMissions() {
       };
       actionsCell.appendChild(editButton);
 
+      // Complete button — marks mission as done and moves it to the Completed list
+      const completeButton = document.createElement("button");
+      completeButton.textContent = "Complete";
+      completeButton.classList.add("complete-btn");
+      completeButton.onclick = function() {
+        mission.completed = true;
+        storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+        markDataDirty();
+        reloadTableData();
+      };
+      actionsCell.appendChild(completeButton);
+
       // Create remove button
       const removeButton = document.createElement("button");
       removeButton.textContent = "Remove";
@@ -1263,6 +1555,7 @@ function displayCurrentMissions() {
             delete window.SJFI_data.missions[itemName];
           }
           storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+          markDataDirty();
           reloadTableData();
         }
       };
@@ -1299,6 +1592,198 @@ function displayCurrentMissions() {
 // Reload table data
 function reloadTableData() {
   displayCurrentMissions();
+  displayCompletedMissions();
+}
+
+// Display completed missions in the Completed Mission List table
+function displayCompletedMissions() {
+  const div = document.getElementById("completed-mission-list");
+  if (!div) return;
+  div.innerHTML = "";
+
+  if (!window.SJFI_data.missions) {
+    div.innerHTML = '<p style="text-align:center">No completed missions.</p>';
+    return;
+  }
+
+  // Collect all completed missions
+  const completedRows = [];
+  Object.keys(window.SJFI_data.missions).forEach(itemName => {
+    window.SJFI_data.missions[itemName].forEach((mission, index) => {
+      if (mission.completed) completedRows.push({ itemName, mission, index });
+    });
+  });
+
+  if (completedRows.length === 0) {
+    div.innerHTML = '<p style="text-align:center">No completed missions.</p>';
+    return;
+  }
+
+  const table = document.createElement("table");
+  table.classList.add("missions-table");
+  table.id = "completed-missions-table";
+
+  const headers = ["Type", "Item", "Amount", "Payment", "Risk", "Distance (Km)", "Faction/Station", "Player Base/Delivery Point", "Planet", "Info", "Produced", "Loaded", "Actions"];
+  const headerRow = document.createElement("tr");
+  headers.forEach(headerText => {
+    const th = document.createElement("th");
+    th.textContent = headerText;
+    headerRow.appendChild(th);
+  });
+  table.appendChild(headerRow);
+
+  const formatNumber = (num) => {
+    const numeric = String(num).replace(/[^\d]/g, '');
+    return numeric ? Number(numeric).toLocaleString() : '';
+  };
+  const escAttr = s => (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  const escText = s => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  completedRows.forEach(({ itemName, mission, index }) => {
+    const row = document.createElement("tr");
+    row.style.opacity = "0.75";
+
+    const missionType = mission.contractType || 'acquisition';
+    const isTransportRow = (missionType === 'courier' || missionType === 'hauling');
+    const typeLabel = missionType.charAt(0).toUpperCase() + missionType.slice(1);
+    const typeCellHTML = `<span class="mission-type-badge mission-type-${missionType}">${typeLabel}</span>`;
+
+    // Faction display
+    let factionCode = "";
+    let factionCellHTML = "";
+    if (mission.firstNameFull && mission.secondNameFull) {
+      const firstMatch = mission.firstNameFull.match(/\(([^)]+)\)/);
+      const secondMatch = mission.secondNameFull.match(/\(([^)]+)\)/);
+      factionCode = `${firstMatch ? firstMatch[1] : ""}${secondMatch ? secondMatch[1] : ""}`.substring(0, 4);
+      const cf = mission.firstNameFull.replace(/\s*\([^)]+\)/g, '').trim();
+      const cs = mission.secondNameFull.replace(/\s*\([^)]+\)/g, '').trim();
+      factionCellHTML = `<span class="faction-full">${factionCode} - ${cf} ${cs}</span><span class="faction-code">${factionCode}</span>`;
+    } else {
+      factionCode = ((mission.firstName || '').substring(0,2) + (mission.secondName || '').substring(0,2));
+      factionCellHTML = `<span class="faction-full">${factionCode} - ${mission.firstName || ''} ${mission.secondName || ''}</span><span class="faction-code">${factionCode}</span>`;
+    }
+    if (mission.stationName) {
+      let plain = mission.firstNameFull && mission.secondNameFull
+        ? `${factionCode} - ${mission.firstNameFull.replace(/\s*\([^)]+\)/g,'').trim()} ${mission.secondNameFull.replace(/\s*\([^)]+\)/g,'').trim()}`
+        : `${mission.firstName || ''} ${mission.secondName || ''}`.trim();
+      const gpsBtn = mission.stationGPS
+        ? ` <button class="gps-inline-btn" data-gps="${escAttr(mission.stationGPS)}" title="Copy station GPS">&#128205;</button>` : '';
+      factionCellHTML = `<span class="station-name tooltip-container">${escText(mission.stationName)}${gpsBtn}<span class="tooltip-text">${escText(plain)}</span></span>`;
+    }
+
+    // Player Base display
+    let playerBaseCellHTML = '';
+    if (mission.playerBase) {
+      const gpsBtn = mission.playerBaseGPS
+        ? ` <button class="gps-inline-btn" data-gps="${escAttr(mission.playerBaseGPS)}" title="Copy base GPS">&#128205;</button>` : '';
+      playerBaseCellHTML = `${escText(mission.playerBase)}${gpsBtn}`;
+    }
+
+    const data = [
+      '',
+      isTransportRow ? '' : getItemWithCategory(itemName, mission.itemCategory),
+      isTransportRow ? '' : formatNumber(mission.amount),
+      mission.payment ? formatNumber(mission.payment) : '',
+      isTransportRow ? (mission.riskLevel || 'Low') : 'N/A',
+      isTransportRow ? (mission.distance != null ? formatNumber(mission.distance) : '') : 'N/A',
+      factionCellHTML,
+      playerBaseCellHTML,
+      mission.planet || '',
+    ];
+
+    data.forEach((cellData, cellIndex) => {
+      const cell = document.createElement("td");
+      if (cellIndex === 0) {
+        cell.innerHTML = typeCellHTML;
+      } else if (cellIndex === 1 && isTransportRow) {
+        cell.innerHTML = escText(mission.cargoDescription || '—');
+      } else if (cellIndex === 6 || cellIndex === 7) {
+        cell.innerHTML = cellData;
+      } else {
+        cell.textContent = cellData;
+      }
+      row.appendChild(cell);
+    });
+
+    // Info cell
+    const infoCell = document.createElement("td");
+    infoCell.classList.add("info-cell");
+    const dateFormatted = mission.dateAccepted
+      ? `Mission Date: ${new Date(mission.dateAccepted).toLocaleDateString()}` : 'Mission Date: Not specified';
+    let tooltipContent = dateFormatted;
+    if (mission.description) tooltipContent += '\n\n' + mission.description;
+    if (tooltipContent) {
+      infoCell.classList.add("tooltip-container");
+      infoCell.textContent = "ⓘ";
+      infoCell.style.cursor = "help";
+      infoCell.style.color = "#888";
+      const tooltip = document.createElement("span");
+      tooltip.classList.add("tooltip-text");
+      tooltip.style.whiteSpace = "pre-wrap";
+      tooltip.textContent = tooltipContent;
+      infoCell.appendChild(tooltip);
+    }
+    row.appendChild(infoCell);
+
+    // Produced (read-only indicator for completed missions)
+    const producedCell = document.createElement("td");
+    producedCell.style.textAlign = "center";
+    producedCell.textContent = mission.produced ? "✓" : "✗";
+    producedCell.style.color = mission.produced ? "#FF9800" : "#555";
+    row.appendChild(producedCell);
+
+    // Loaded (read-only indicator for completed missions)
+    const loadedCell = document.createElement("td");
+    loadedCell.style.textAlign = "center";
+    loadedCell.textContent = mission.loaded ? "✓" : "✗";
+    loadedCell.style.color = mission.loaded ? "#4CAF50" : "#555";
+    row.appendChild(loadedCell);
+
+    // Actions: Edit, Restore, Remove
+    const actionsCell = document.createElement("td");
+
+    const editButton = document.createElement("button");
+    editButton.textContent = "Edit";
+    editButton.classList.add("edit-btn");
+    editButton.onclick = () => loadMissionToForm(itemName, mission, index);
+    actionsCell.appendChild(editButton);
+
+    const restoreButton = document.createElement("button");
+    restoreButton.textContent = "Restore";
+    restoreButton.classList.add("restore-btn");
+    restoreButton.onclick = function() {
+      mission.completed = false;
+      storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+      incrementChangeCounter(-1); // restoring cancels out the prior Complete (+1)
+      reloadTableData();
+    };
+    actionsCell.appendChild(restoreButton);
+
+    const removeButton = document.createElement("button");
+    removeButton.textContent = "Remove";
+    removeButton.classList.add("remove-btn");
+    removeButton.onclick = function() {
+      if (confirm("Permanently remove this completed mission?")) {
+        window.SJFI_data.missions[itemName].splice(index, 1);
+        if (window.SJFI_data.missions[itemName].length === 0) {
+          delete window.SJFI_data.missions[itemName];
+        }
+        storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+        markDataDirty();
+        reloadTableData();
+      }
+    };
+    actionsCell.appendChild(removeButton);
+
+    row.appendChild(actionsCell);
+    table.appendChild(row);
+  });
+
+  div.appendChild(table);
+
+  if (typeof applyColumnVisibility === 'function') {
+    applyColumnVisibility();
+  }
 }
 
 // Format time parts (for export filename)
@@ -1320,6 +1805,7 @@ function JSONExport() {
   const fullFilename = `SEAT_Missions_${year}-${month}-${day}_T_${hours}-${minutes}-${seconds}.json`;
 
   SJFIJSONExport(window.SJFI_data, fullFilename);
+  markDataClean();
 }
 
 // Import JSON data
@@ -1339,6 +1825,7 @@ async function importJSONObjects(event) {
     
     window.SJFI_data = importedData;
     storeJSONObjectsIntoKey(window.SJFI_storageKey, window.SJFI_data);
+    markDataDirty();
     reloadTableData();
     alert("Data imported successfully!");
   }
@@ -1349,6 +1836,7 @@ function clearLocalStorage() {
   if (confirm("Are you sure you want to delete ALL missions? This cannot be undone!")) {
     clearLocalStorageALLKeys();
     window.SJFI_data = { missions: {} };
+    markDataClean();
     reloadTableData();
     alert("All data cleared successfully!");
   }
@@ -1368,7 +1856,7 @@ function cancelEdit() {
   window.currentlyEditingMission = null;
 
   // Clear new optional fields before reset
-  ['formStationName', 'formStationGPS', 'formPlayerBase', 'formPlayerBaseGPS'].forEach(id => {
+  ['formStationName', 'formStationGPS', 'formPlayerBase', 'formPlayerBaseGPS', 'formCargoDescription'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -1384,6 +1872,9 @@ function cancelEdit() {
   document.getElementById('edit-mode-indicator').style.display = 'none';
   document.getElementById('cancel-edit-btn').style.display = 'none';
 
+  // Reset to acquisition type
+  switchContractType('acquisition');
+
   // Reload form dropdowns (also re-initializes searchable dropdowns)
   initializeFormDropdowns();
 }
@@ -1396,6 +1887,7 @@ function softResetForm() {
   const currentSecondName = document.getElementById("formSecondName").value;
   const currentStationName = document.getElementById("formStationName")?.value || "";
   const currentPlayerBase = document.getElementById("formPlayerBase")?.value || "";
+  const currentContractType = document.getElementById("formContractType")?.value || "acquisition";
 
   // Reset the form completely
   document.getElementById('missionForm').reset();
@@ -1420,6 +1912,9 @@ function softResetForm() {
   // Update searchable dropdown display texts to match restored values
   setSearchableValue('formFirstName', currentFirstName);
   setSearchableValue('formSecondName', currentSecondName);
+
+  // Restore the contract type toggle state (so adding multiple courier missions is smooth)
+  switchContractType(currentContractType);
 }
 
 // Load mission data into form for editing
@@ -1432,45 +1927,51 @@ function loadMissionToForm(itemName, mission, index) {
     itemName: itemName,
     index: index
   };
-  
-  // Populate form fields with mission data
-  const itemSelect = document.getElementById("formAcquisitionItem");
-  const options = itemSelect.options;
-  
-  // Try to find the correct option by matching both value and category
-  let foundOption = false;
-  for (let i = 0; i < options.length; i++) {
-    const option = options[i];
-    // Check if value matches and category matches (if we have stored category)
-    if (option.value === itemName) {
-      if (mission.itemCategory) {
-        // If we have a stored category, make sure it matches
-        const optionCategory = option.getAttribute('data-category');
-        if (optionCategory === mission.itemCategory) {
+
+  // Switch to the correct contract type first (shows/hides the right fields)
+  const contractType = mission.contractType || 'acquisition';
+  switchContractType(contractType);
+
+  // ── Acquisition-specific fields ──────────────────────────────────────────
+  if (contractType === 'acquisition') {
+    const itemSelect = document.getElementById("formAcquisitionItem");
+    const options = itemSelect.options;
+    
+    // Try to find the correct option by matching both value and category
+    let foundOption = false;
+    for (let i = 0; i < options.length; i++) {
+      const option = options[i];
+      if (option.value === itemName) {
+        if (mission.itemCategory) {
+          const optionCategory = option.getAttribute('data-category');
+          if (optionCategory === mission.itemCategory) {
+            itemSelect.selectedIndex = i;
+            foundOption = true;
+            break;
+          }
+        } else {
           itemSelect.selectedIndex = i;
           foundOption = true;
           break;
         }
-      } else {
-        // No stored category, just use first match (fallback for older data)
-        itemSelect.selectedIndex = i;
-        foundOption = true;
-        break;
       }
     }
-  }
-  
-  // If we couldn't find a match with category, fall back to first value match
-  if (!foundOption) {
-    for (let i = 0; i < options.length; i++) {
-      if (options[i].value === itemName) {
-        itemSelect.selectedIndex = i;
-        break;
+    if (!foundOption) {
+      for (let i = 0; i < options.length; i++) {
+        if (options[i].value === itemName) { itemSelect.selectedIndex = i; break; }
       }
     }
+    if (itemSelect._sdUpdateDisplay) itemSelect._sdUpdateDisplay();
+    document.getElementById("formAmount").value = mission.amount || "";
   }
-  
-  document.getElementById("formAmount").value = mission.amount || "";
+
+  // ── Transport-specific fields ─────────────────────────────────────────────
+  const cargoEl = document.getElementById("formCargoDescription");
+  if (cargoEl) cargoEl.value = mission.cargoDescription || "";
+  const riskEl = document.getElementById("formRisk");
+  if (riskEl && mission.riskLevel) riskEl.value = mission.riskLevel;
+  const distEl = document.getElementById("formDistance");
+  if (distEl) distEl.value = mission.distance != null ? mission.distance : "";
   document.getElementById("formPayment").value = mission.payment || "";
   
   // Set faction names
@@ -1520,8 +2021,6 @@ function loadMissionToForm(itemName, mission, index) {
   document.getElementById("formPlayerBaseGPS").value = mission.playerBaseGPS || "";
 
   // Update searchable dropdown display texts to match the native select values just set
-  const itemSel = document.getElementById("formAcquisitionItem");
-  if (itemSel._sdUpdateDisplay) itemSel._sdUpdateDisplay();
   const firstSel = document.getElementById("formFirstName");
   if (firstSel._sdUpdateDisplay) firstSel._sdUpdateDisplay();
   const secondSel = document.getElementById("formSecondName");

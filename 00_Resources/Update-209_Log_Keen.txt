@@ -1,0 +1,90 @@
+Update 1.209 - Economy 2
+Keen Support shared this announcement 24 days ago
+  Follow
+
+Hello, Engineers!
+
+The Economy 2 Update is here - and it changes how you play. Store entire grids and redeploy them when you need them. Repair your ship at a trade station without replacing a single component. Hunt bounties, haul cargo through pirate space, and sell scrap for credits. Trade stations now have NPCs walking around inside them. And further ModAPI improvements open new possibilities for modders, server gamemasters, and scenario makers.
+
+Everything in this update is free. Alongside it, we're releasing the Economy 2 Pack with new decorative blocks and variants to expand your creative options.
+
+    Full Blog Post: https://www.spaceengineersgame.com/space-engineers-economy-2/
+    Economy 2 Pack: https://store.steampowered.com/app/4502100/Space_Engineers__Economy_2_Pack/
+    Services Terminal Guide: https://www.spaceengineersgame.com/new-players/services-terminal-guide/
+
+    Revamped Economy Systems for Better User Experience 
+        Repurposed the Active Contracts screen (colon key) into a new Economy Overview screen, which displays all important store and contract related information in one place
+        Added Item Search tab to Store Blocks and Economy Overview screen, allowing players to remotely search for items listed at NPC and Player Built stores. Compare prices and browse the market all from your own base!
+        Time between restocking stores or posting new contracts is now displayed when interacting with NPC owned Stores and Contract Blocks
+        Increased the default time between Store Blocks restocking items and Contract Blocks posting new contracts to 10 minutes. This time is configurable on Dedicated Servers.
+        Rebalanced item prices at NPC stations so that player-built stores are easily able to undercut them in multiplayer worlds. Play together, thrive together!
+    Added Services via the Services Terminal block
+        Grid Storage
+            Store and retrieve entire grid
+            Deploy to the general area, or to specific parking space using “Precision Mode” controls.
+            “Anyone Can Use” toggle allows players to interact with this system at Trade Stations or allied bases
+            A per-grid “Share with Faction” option allows you to share your stored grids with faction members
+            Added “Grid Storage Retrieval Time” world setting for adding or removing wait times when redeploying grids. Disable for instant retrieval on fast, casual worlds and scenarios. If wait times are enabled, retrieval time for grids can be expedited by paying Space Credits - reducing the time by up to 50%. Costs, times, and percentages can be further finetuned on Dedicated Servers
+            Added “Allow Items In Stored Grids” world setting to toggle allowing items to be left inside stored grids.
+        Grid Repair
+            Bring a grid to an NPC Trade Station and pay them to quickly repair your grid. You must be the majority owner of the grid to use this service on it
+        Grid Salvage
+            Earn Space Credits by selling grids as scrap at an NPC Trade Station. You must be the majority owner of the grid to use this service on it.
+    Store Block Improvements 
+        Added the ability for players to sell gasses (Hydrogen, Oxygen, and modded) from player-built store blocks.
+        Maximum item listings per Store Block increased from 30 to 50.
+        Added Item Search tab to all store blocks.
+    Contracts
+        Overall rebalance of contract parameters and contract rewards.
+        Added New Contracts
+            Courier: Deliver packages between stations.
+            Search: Locate missing grids and bring them back to their owners.
+            PvE Bounty: Destroy an enemy grid.
+            Hauling: Ship heavy containers between stations.
+            Salvage: Locate a lost item onboard a derelict. Keep whatever else you manage to salvage.
+            Item Recovery: Find special items inside of existing NPC encounters (Cargo Ships, Random Encounters, etc), and deliver them to interested parties for rewards!
+            Grid Recovery: As you explore the world, there’s a chance of coming across derelicts and damaged grids. Bring them back to their home base for a reward
+            Removed Escort Contracts
+    Trade Station Improvements
+        Added 17 New Trade Station Prefabs for Surface, Orbital, and Deep Space Stations.
+        Added Animated NPC Characters on Trade Stations
+        Trade Stations now have unique names assigned to them
+            This includes Meridius Station in honor of the creator of the Modular Encounters Systems mod.
+        Improved Methods for Finding Trade Stations
+            Trade Stations now feature dynamic advertisements displayed on billboards, which when interacted with can grant GPS locations to the advertised station
+            Datapads with Trade Station locations can now be found in loot
+            Encounters can now trigger contracts guiding you to new stations.
+        Added 43 grids to Trade Station Sales, including Ships, Rovers, Drones, and Missiles
+        All trade stations now sell Hydrogen
+        Added support for Faction Type specific Trade Station prefabs
+    Reputation Changes
+        Added “Reputation Decay Over Time” world setting, which slowly resets reputation to default values over time. Only active play time counts, offline players will not have their reputation decay
+        A hostile reputation with an NPC faction no longer blocks the player from accessing their store or contracts. Hostile reputation will result in limited options for contracts and offer no discounts on prices.
+        Negative reputation no longer propagates to allies of the impacted faction
+        Any reputation change will now make an NPC faction visible to the player
+        Reputation is no longer lost or gained from interacting with Player Factions
+    Safe Zone Improvements
+        Safe Zones now automatically pull inventory, just as other blocks do.
+        Reduced power requirements of the Safe Zone Block
+        Removed Floating Objects as a filter type for Safe Zones
+        Floating objects now come to rest much faster inside Safe Zones
+    Added Support for Joystick and Controller Customization
+        Use Generic Joystick Controller Scheme with any joystick controller
+
+Added New Blocks - Base Game
+
+    Services Terminal (1 x L)
+    Structural Blocks (7 x L)
+        Structural Platform
+        Structural Platform Connector
+        Structural Platform Corner
+        Structural Frame
+        Diagonal Beam 3x3
+        Diagonal Beam 4x4
+        Diagonal Beam 5x5
+    Contract Specific Items
+        Encrypted Data Storage
+        Intercepted Transmissions
+        Research Materials
+        Smuggled Goods
+        Technical Blueprints

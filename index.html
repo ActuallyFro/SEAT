@@ -81,23 +81,71 @@
           <hr><h1><u>Add Mission</u></h1>
           <!-- ------------------ -->
           <form id="missionForm">
-            <div class="form-row">
-              <div class="form-col">
-                <!-- Acquisition item: searchable custom dropdown (JS transforms the select) -->
-                <div class="form-group">
-                  <label for="formAcquisitionItem">Acquisition Item:</label>
-                  <div class="select-wrapper">
-                    <select id="formAcquisitionItem" name="formAcquisitionItem"></select>
+            <!-- ── Contract Type Selector ─────────────────────────────────────── -->
+            <div class="form-group contract-type-group">
+              <div class="contract-type-selector" id="contractTypeSelector">
+                <button type="button" class="contract-type-btn active" data-type="acquisition">Acquisition</button>
+                <button type="button" class="contract-type-btn" data-type="courier">Courier</button>
+                <button type="button" class="contract-type-btn" data-type="hauling">Hauling</button>
+              </div>
+              <input type="hidden" id="formContractType" value="acquisition">
+            </div>
+
+            <!-- ── Acquisition-only: Item + Amount ────────────────────────────── -->
+            <div id="acqOnlyFields">
+              <div class="form-row">
+                <div class="form-col">
+                  <!-- Acquisition item: searchable custom dropdown (JS transforms the select) -->
+                  <div class="form-group">
+                    <label for="formAcquisitionItem">Acquisition Item:</label>
+                    <div class="select-wrapper">
+                      <select id="formAcquisitionItem" name="formAcquisitionItem"></select>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="formAmount">Amount:</label>
+                    <div class="stepper-group">
+                      <button type="button" class="stepper-btn stepper-minus" data-target="formAmount">−</button>
+                      <input type="number" id="formAmount" name="formAmount" min="1" step="1">
+                      <button type="button" class="stepper-btn stepper-plus" data-target="formAmount">+</button>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div class="form-col">
-                <div class="form-group">
-                  <label for="formAmount">Amount:</label>
-                  <div class="stepper-group">
-                    <button type="button" class="stepper-btn stepper-minus" data-target="formAmount">−</button>
-                    <input type="number" id="formAmount" name="formAmount" min="1" step="1" required>
-                    <button type="button" class="stepper-btn stepper-plus" data-target="formAmount">+</button>
+            </div>
+
+            <!-- ── Courier / Hauling-only: Cargo Description + Risk + Distance ── -->
+            <div id="transportOnlyFields" style="display:none">
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="formCargoDescription">Cargo Description:</label>
+                    <input type="text" id="formCargoDescription" name="formCargoDescription" placeholder="e.g. 200 Iron Ingots, medical supplies…">
+                  </div>
+                </div>
+                <div class="form-col"><!-- empty --></div>
+              </div>
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="formRisk">Risk Level:</label>
+                    <select id="formRisk" name="formRisk">
+                      <option value="Low">Low</option>
+                      <option value="Moderate">Moderate</option>
+                      <option value="High">High</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="formDistance">Distance (Km):</label>
+                    <div class="stepper-group">
+                      <button type="button" class="stepper-btn stepper-minus" data-target="formDistance">−</button>
+                      <input type="number" id="formDistance" name="formDistance" min="0" step="1" placeholder="0">
+                      <button type="button" class="stepper-btn stepper-plus" data-target="formDistance">+</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -141,12 +189,12 @@
             <div class="form-row">
               <div class="form-col">
                 <div class="form-group">
-                  <label for="formStationName">Station Name <small style="color:#888;font-weight:normal">(optional override)</small>:</label>
+                  <label for="formStationName"><span id="stationNameLabelText">Station Name</span> <small id="stationNameLabelSub" style="color:#888;font-weight:normal">(optional override)</small>:</label>
                   <input type="text" id="formStationName" name="formStationName" list="knownStations" placeholder="e.g. FRAC Oberlin Station (overrides faction display)" autocomplete="off">
                   <datalist id="knownStations"></datalist>
                 </div>
                 <div class="form-group gps-group">
-                  <label for="formStationGPS" style="font-size:0.85em;color:#aaa">Station GPS:</label>
+                  <label for="formStationGPS" id="stationGPSLabel" style="font-size:0.85em;color:#aaa">Station GPS:</label>
                   <input type="text" id="formStationGPS" name="formStationGPS" placeholder="GPS:Name:X:Y:Z:#RRGGBB:">
                   <button type="button" class="gps-copy-btn" data-target="formStationGPS" title="Copy GPS to clipboard">&#128203;</button>
                 </div>
@@ -174,12 +222,12 @@
             <div class="form-row">
               <div class="form-col">
                 <div class="form-group">
-                  <label for="formPlayerBase">Player Base <small style="color:#888;font-weight:normal">(optional)</small>:</label>
+                  <label for="formPlayerBase"><span id="playerBaseLabelText">Player Base</span> <small id="playerBaseLabelSub" style="color:#888;font-weight:normal">(optional)</small>:</label>
                   <input type="text" id="formPlayerBase" name="formPlayerBase" list="knownPlayerBases" placeholder="e.g. Hauler Alpha" autocomplete="off">
                   <datalist id="knownPlayerBases"></datalist>
                 </div>
                 <div class="form-group gps-group">
-                  <label for="formPlayerBaseGPS" style="font-size:0.85em;color:#aaa">Player Base GPS:</label>
+                  <label for="formPlayerBaseGPS" id="playerBaseGPSLabel" style="font-size:0.85em;color:#aaa">Player Base GPS:</label>
                   <input type="text" id="formPlayerBaseGPS" name="formPlayerBaseGPS" placeholder="GPS:Name:X:Y:Z:#RRGGBB:">
                   <button type="button" class="gps-copy-btn" data-target="formPlayerBaseGPS" title="Copy GPS to clipboard">&#128203;</button>
                 </div>
@@ -214,6 +262,14 @@
               <div class="current-mission-list" id="current-mission-list"></div>
             </div>
           </div>
+          <!-- ------------------------------- -->
+          <hr><h1><u>Completed Mission List</u></h1>
+          <!-- ------------------------------- -->
+          <div id="completedMissionListContainer">
+            <div class="table-responsive">
+              <div class="current-mission-list" id="completed-mission-list"></div>
+            </div>
+          </div>
           <!-- -------------------------- -->
           <hr><h3><u>Admin Functions</u></h3>
           <!-- -------------------------- -->
@@ -224,6 +280,10 @@
               <input type="file" id="import-file" style="display:none">
               <button id="clear-storage" class="danger">Clear All Data</button>
             </div>
+            <div id="backupWarning" class="backup-warning" style="display:none;" role="status">
+              &#9888; Mission list not backed up
+              <span class="backup-warning-tip">Your mission list has been updated since your last export.<br>Click <strong>Export List</strong> to download a backup copy.<br><em>Browser storage can be cleared at any time.</em></span>
+            </div>
           </div>
         </div>
       </div>
@@ -232,6 +292,30 @@
     <div id='stars'></div>
     <div id='stars2'></div>
     <div id='stars3'></div>
+
+    <!-- ── Fixed-bottom export status / reminder ───────────────────────────────
+         #exportContainer wraps both the time-warning strip and the count bar so
+         they stack cleanly at the bottom of the viewport.
+         Shown/hidden entirely via JS (updateExportStatusBar / showTimeWarningToast).
+    ──────────────────────────────────────────────────────────────────────────── -->
+    <div id="exportContainer" style="display:none;">
+      <!-- Time-based warning (appears when >15 min since last export AND changes > 0) -->
+      <div id="exportTimeWarning" style="display:none;">
+        <span id="exportTimeMsg"></span>
+        <div class="export-status-actions">
+          <button id="exportNowBtn2">Export Now</button>
+          <button id="exportSnoozeBtn">Snooze 15&nbsp;min</button>
+          <button id="exportDismissBtn">Dismiss</button>
+        </div>
+      </div>
+      <!-- Count-based status bar (always visible when totalUnexportedChanges > 0) -->
+      <div id="exportStatusBar">
+        <span id="exportStatusText"></span>
+        <div class="export-status-actions">
+          <button id="exportNowBtn">Export Now</button>
+        </div>
+      </div>
+    </div>
   </body>
 
 

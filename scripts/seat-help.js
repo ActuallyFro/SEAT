@@ -203,6 +203,13 @@
         'Use <strong>Import List</strong> to restore them.',
         'All fields — including Station GPS and Player Base GPS — are preserved in the export.</p>',
 
+        '<p class="help-tip">&#9888; <strong>Important — Back up your data regularly!</strong><br>',
+        'SEAT stores all missions in your browser\'s <strong>localStorage</strong>. This storage',
+        'can be wiped by clearing browser data, switching browser profiles, or using private/incognito',
+        'mode. <strong>It is not a permanent backup.</strong><br>',
+        'After adding or updating missions, SEAT shows a <strong>&#9888; Mission list not backed up</strong>',
+        'warning near the Export button. Click <em>Export List</em> to dismiss it and save a copy.</p>',
+
         '<h3>&#9881;&#65039; Settings (hamburger menu &#9776;)</h3>',
         '<ul>',
         '  <li>Toggle individual <strong>column visibility</strong> in the missions table.</li>',

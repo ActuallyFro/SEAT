@@ -355,7 +355,45 @@ button.produced-btn.checked:hover {
   background-color: #e68a00 !important;
 }
 
-.admin-buttons {
+/* Complete button (green - marks mission as done) */
+button.complete-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+button.complete-btn:hover {
+  background-color: #45a049;
+}
+
+/* Restore button (purple - moves back to active) */
+button.restore-btn {
+  background-color: #9C27B0;
+  color: white;
+}
+button.restore-btn:hover {
+  background-color: #7B1FA2;
+}
+
+/* Clear (X) button overlaying the right side of a searchable dropdown */
+.select-clear-btn {
+  position: absolute;
+  top: 8px;
+  right: 6px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 1px 4px;
+  z-index: 201;
+  line-height: 1;
+}
+.select-clear-btn:hover {
+  color: #fff;
+}
+/* Give the search input right padding so text doesn't hide under the X */
+.select-wrapper.clearable .select-search {
+  padding-right: 28px;
+}
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -986,3 +1024,210 @@ td.tooltip-container {
     display: none;
   }
 }
+
+/* ── Backup / export reminder badge ── */
+.backup-warning {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  background: rgba(255, 165, 0, 0.10);
+  border: 1px solid #b87800;
+  color: #ffa040;
+  padding: 6px 14px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: default;
+  animation: backup-pulse 2.5s ease-in-out infinite;
+  white-space: nowrap;
+}
+.backup-warning:hover .backup-warning-tip { display: block; }
+.backup-warning-tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0e1a30;
+  border: 1px solid #b87800;
+  color: #ffd080;
+  padding: 10px 14px;
+  border-radius: 6px;
+  min-width: 230px;
+  max-width: 280px;
+  font-size: 12px;
+  font-weight: normal;
+  z-index: 3000;
+  text-align: left;
+  line-height: 1.6;
+  white-space: normal;
+  pointer-events: none;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+}
+@keyframes backup-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+/* ── Contract Type Selector ─────────────────────────────────────────────── */
+.contract-type-group {
+  margin-bottom: 14px;
+}
+
+.contract-type-selector {
+  display: inline-flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #444;
+  gap: 0;
+}
+
+.contract-type-btn {
+  background: rgba(255,255,255,0.05);
+  color: #aaa;
+  border: none;
+  padding: 7px 18px;
+  font-size: 0.9em;
+  font-weight: bold;
+  cursor: pointer;
+  border-right: 1px solid #444;
+  transition: background 0.15s, color 0.15s;
+  min-height: unset; /* override mobile min-height */
+}
+
+.contract-type-btn:last-child {
+  border-right: none;
+}
+
+.contract-type-btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.contract-type-btn.active {
+  background: #1a4a8a;
+  color: #fff;
+}
+
+/* Active colours per type */
+.contract-type-btn[data-type="acquisition"].active { background: #1a4a8a; }
+.contract-type-btn[data-type="courier"].active      { background: #2a6632; }
+.contract-type-btn[data-type="hauling"].active      { background: #7a4000; }
+
+/* ── Mission type badges in table ───────────────────────────────────────── */
+.mission-type-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: bold;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 4px;
+}
+
+.mission-type-acquisition {
+  background: #1a2a4a;
+  color: #7ab4ff;
+  border: 1px solid #2a4a8a;
+}
+
+.mission-type-courier {
+  background: #1a4a22;
+  color: #7ddc8e;
+  border: 1px solid #2a6632;
+}
+
+.mission-type-hauling {
+  background: #4a2a00;
+  color: #ffb347;
+  border: 1px solid #7a4000;
+}
+
+/* ── Fixed-bottom export status bar ──────────────────────────────────────── */
+#exportContainer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Count-based status bar — always shown when totalUnexportedChanges > 0 */
+#exportStatusBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  background: rgba(24, 16, 0, 0.97);
+  border-top: 1px solid #7a5200;
+  color: #ffa040;
+  font-size: 13px;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+#exportStatusBar.export-warn-high {
+  border-top-color: #cc4400;
+  color: #ff8040;
+  animation: backup-pulse 2.5s ease-in-out infinite;
+}
+#exportStatusText {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Time-based toast — appears above the count bar when >15 min elapsed */
+#exportTimeWarning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  background: rgba(48, 12, 0, 0.98);
+  border-top: 2px solid #cc4400;
+  color: #ff8040;
+  font-size: 13px;
+  font-weight: 600;
+  flex-wrap: wrap;
+  animation: backup-pulse 2.5s ease-in-out infinite;
+}
+#exportTimeMsg {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Shared action-button row inside both strips */
+.export-status-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+#exportNowBtn, #exportNowBtn2 {
+  background: #b87800;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+#exportNowBtn:hover, #exportNowBtn2:hover { background: #d49000; }
+#exportSnoozeBtn, #exportDismissBtn {
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+#exportSnoozeBtn:hover, #exportDismissBtn:hover { color: #fff; border-color: #aaa; }
+
+/* Reserve space so page content is never hidden under the fixed bar */
+body { padding-bottom: 50px; }

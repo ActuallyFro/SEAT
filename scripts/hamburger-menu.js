@@ -5,11 +5,14 @@
 
 // Column definitions for the mission table
 const tableColumns = [
+  { id: 'type', label: 'Type', defaultVisible: true },
   { id: 'item', label: 'Item', defaultVisible: true },
   { id: 'amount', label: 'Amount', defaultVisible: true },
   { id: 'payment', label: 'Payment', defaultVisible: true },
+  { id: 'risk', label: 'Risk', defaultVisible: true },
+  { id: 'distance', label: 'Distance (Km)', defaultVisible: true },
   { id: 'faction', label: 'Faction/Station', defaultVisible: true },
-  { id: 'playerBase', label: 'Player Base', defaultVisible: true },
+  { id: 'playerBase', label: 'Player Base/Delivery Point', defaultVisible: true },
   { id: 'planet', label: 'Planet', defaultVisible: true },
   { id: 'info', label: 'Info', defaultVisible: true },
   { id: 'produced', label: 'Produced', defaultVisible: true },
@@ -114,31 +117,30 @@ function getColumnVisibility(columnId, defaultValue) {
   return settings[columnId] !== undefined ? settings[columnId] : defaultValue;
 }
 
-// Apply column visibility settings to the mission table
+// Apply column visibility settings to all mission tables
 function applyColumnVisibility() {
-  const table = document.querySelector('.missions-table');
-  if (!table) return; // Table not yet created
-  
-  // Get headers and set their visibility
-  const headers = table.querySelectorAll('th');
-  tableColumns.forEach((column, index) => {
-    if (index < headers.length) {
-      const isVisible = getColumnVisibility(column.id, column.defaultVisible);
-      headers[index].style.display = isVisible ? '' : 'none';
-    }
-  });
-  
-  // Set visibility for cells in each row
-  const rows = table.querySelectorAll('tr');
-  rows.forEach(row => {
-    if (row.querySelector('th')) return; // Skip header row
-    
-    const cells = row.querySelectorAll('td');
+  document.querySelectorAll('.missions-table').forEach(table => {
+    // Get headers and set their visibility
+    const headers = table.querySelectorAll('th');
     tableColumns.forEach((column, index) => {
-      if (index < cells.length) {
+      if (index < headers.length) {
         const isVisible = getColumnVisibility(column.id, column.defaultVisible);
-        cells[index].style.display = isVisible ? '' : 'none';
+        headers[index].style.display = isVisible ? '' : 'none';
       }
+    });
+
+    // Set visibility for cells in each row
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+      if (row.querySelector('th')) return; // Skip header row
+
+      const cells = row.querySelectorAll('td');
+      tableColumns.forEach((column, index) => {
+        if (index < cells.length) {
+          const isVisible = getColumnVisibility(column.id, column.defaultVisible);
+          cells[index].style.display = isVisible ? '' : 'none';
+        }
+      });
     });
   });
 }

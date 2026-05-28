@@ -1,0 +1,260 @@
+Space Engineers has two types of NPCs: bots and ships.
+
+The bots are neutral roaming astronauts in [[Trading Station]]s and enemy [[Wolves]] & [[Sabiroids]] on specific [[planets]].
+
+The ship ones are the [[encounters]] and their [[drone]]s, which are mainly controlled by [[automaton]] blocks. These ships are owned by certain [[factions]] which can be enemy, neutral or friendly with the player depending on their [[Factions#What_is_Faction_Reputation?|reputation]] with said faction.
+
+==Gallery==
+<gallery>
+ROS battleship.png|R.O.S. battleship
+SPRT-stinging-adversary.png|SPRT faction pirate drone
+Image (13).png|A randomly generated Planetary NPC Trading Outpost
+2020-06-20-22-07-07-298.png|A randomly generated NPC Trading Station in Space
+</gallery>
+
+==NPC Factions in Lore==
+The implicit lore in [[scenario]]s mentions several NPC factions:
+* First Colonists (FSTC) -- default player faction 
+* [[SPRT Space Pirates|Space Pirates (SPRT)]] (sometimes misread as SPAT) -- The default antagonist. Starts out hostile, but if you destroy too many trader ships, they'll ally with you and you will only be able to trade with SPRT. 
+* [[Results Oriented Sciences (R.O.S.)|Results Oriented Sciences (ROS)]] -- red fleet
+* [[Sol Cooperative]] (SOL) -- blue fleet
+* [[Independent Terran Workers|Independent Terran Workers (ITW)]] -- yellow fleet
+* [[Argonaut Industries|Argonaut Industries (AGI)]] -- green fleet
+* [[The Factorum]] (FCTM) - golden fleet. A permanently hostile faction that owns the [[Global Encounters]]. They are the creators of [[Prototech]]. 
+* [[The Unknown]] (UNKN) - The ownership of derelicts, wrecks, and other inert [[encounters]] is a permanently neutral virtual faction indicated as "unknown".
+
+==NPC Factions in Economy trading outposts==
+
+When a world with [[Economy]] enabled is generated, a dozen random neutral NPC factions are also added. These factions own the [[Trading Outposts]] that the player comes across. The NPC factions are either miners, traders, builders, pirates, or military, in contrast to wrecks which are owned by [[the Factorum]] or Unknown factions. There are even certain sections of the NPC Trading Outposts that are ostensibly only accessible for faction members. 
+
+After an NPC ship or Trading Outpost appears on your radar ([[HUD]]) in Survival Mode, you'll see a message saying you have "discovered" this faction and their name is now revealed in the list in the [[Factions]] tab in your [[Terminal]]. In Creative Mode, all faction names are visible from the start.
+
+==Who are the NPC traders?==
+
+By finding their faction names in the table below, you can distinguish multiple types of NPCs: 
+*Miners sell and buy ores and materials.  
+*Traders sell and buy components. 
+*Builders sell rovers and ships and buy components.
+*Military sell predominantly weapons and ammo
+*Pirates sell predominantly weapons and ammo
+They all have a chance of additionally selling {{ii|Zone Chip|s}}, [[Meal Pack]]s, and other items each time their stock is rerolled. 
+
+Knowing their goods type is relevant if you want to trade specific items, so you can head for the outpost most likely to deal in that area of business. 
+
+The names and colours of the Economy factions are randomly generated, drawn from a list of terms that are stitched together to create unique phrases and four-letter faction tags. Examples of such random names are “Supreme Shipbuilding (SMSB)” or “Interstellar Technologies (ISTC)”, and so on.
+
+The first half of the faction name and tag is drawn from a pool shared by all faction types, while the second half depends on what type of trader faction it is.
+
+<div class="mw-collapsible">
+===List of all trader faction name and tag fragments===
+<div class="columns mw-collapsible-content" style="columns: 3;">
+{| class="wikitable"
+|+First part<br/>(all faction types)
+!Name
+!Tag
+|-
+|Clang         || CL
+|-
+|Universal     || UV
+|-
+|United        || UN
+|-
+|Royal         || RL
+|-
+|Independent   || ID
+|-
+|First Class   || FC
+|-
+|Specialized   || SP
+|-
+|Rogue         || RO
+|-
+|Secret        || SC
+|-
+|The First     || TF
+|-
+|Galactic      || GC
+|-
+|Intergalactic || IG
+|-
+|Righteous     || RT
+|-
+|Star          || ST
+|-
+|Imperial      || IM
+|-
+|Revolutionary || RV
+|-
+|Interstellar  || IS
+|-
+|Mystic        || MT
+|-
+|Sacred        || SA
+|-
+|Divine        || DV
+|-
+|Enlightened   || EN
+|-
+|Sovereign     || SO
+|-
+|Supreme       || SM
+|-
+|Unyielding    || UD
+|-
+|Merciless     || ME
+|}
+
+{| class="wikitable bigtable"
+|+Miner factions
+!Name
+!Tag
+|-
+|Minerals            || MN
+|-
+|Drilling Consortium || DC
+|-
+|Miners Guild        || MG
+|-
+|Prospectors         || PR
+|-
+|Drillers            || DR
+|-
+|Excavators          || EX
+|-
+|Sappers             || SR
+|}
+
+{| class="wikitable bigtable"
+|+Trader factions
+!Name
+!Tag
+|-
+|Commerce         || CO
+|-
+|Shipping         || SH
+|-
+|Technologies     || TC
+|-
+|Alliance         || AL
+|-
+|Traders          || TR
+|-
+|Settlers         || SL
+|-
+|Dwellers         || DW
+|-
+|Hauling Services || HS
+|-
+|Merchants        || MC
+|-
+|Conglomerate     || CM
+|}
+
+{| class="wikitable bigtable"
+|+Builder factions
+!Name
+!Tag
+|-
+|Engineering || EG
+|-
+|Shipbuilding || SB
+|-
+|Heavy Industry || HI
+|-
+|Construction Guild || CG
+|-
+|Industry || IN
+|-
+|Welders || WE
+|-
+|Manufacturers || MA
+|-
+|Makers || MK
+|-
+|Inventors || IV
+|-
+|Artisans || AT
+|-
+|Constructors || CS
+|}
+
+{| class="wikitable bigtable"
+|+Pirate factions
+!Name
+!Tag
+|-
+|Cartel      || CT
+|-
+|Contraband  || CB
+|-
+|Dealers     || DE
+|-
+|Fences      || FN
+|-
+|Raiders     || RD
+|-
+|Smuggling   || SG
+|-
+|Syndicate   || SY
+|-
+|Traffickers || TK
+|-
+|Underworld  || UN
+|}
+
+{| class="wikitable bigtable"
+|+Military factions
+!Name
+!Tag
+|-
+|Battalion    || BT
+|-
+|Enforcers    || EN
+|-
+|Guard        || GD
+|-
+|Hunters      || HN
+|-
+|Infantry     || IF
+|-
+|Infiltration || IL
+|-
+|Munitions    || MU
+|-
+|Recon        || RC
+|-
+|Security     || SC
+|-
+|Tactical     || TL
+|}
+</div>
+</div>
+
+== How to find NPC ships and stations==
+
+To find and trigger an encounter:
+* Switch on your [[HUD]] to full visibility: Cycle modes by pressing  {{Default|Tab}}. 
+* Enable full [[Signal]]s on your HUD: Cycle modes by pressing {{Default|H}}. 
+
+If you are in a world with Economy enabled, your Drop Pod contains a datapad with coordinates of a trade outpost. Outposts sell datapads with more coordinates to explore. 
+
+If you are in a world with pirate bases or Encounters enabled, travel around a few minutes in a straight line, and you should see their signals highlighted in red on your HUD. 
+
+Tip: In singleplayer, and if you are Admin in multiplayer, you can use the [[Admin Screen]] to see a list of all active grids, including the ones from Economy and Encounters.
+
+If you have installed an Encounters mod from the Workshop, there will be other conditions and custom chat commands to see the mod status — read the workshop page thoroughly.
+
+==How to add more encounters==
+To learn how to make hostile pirates spawn in any world, see [[How to trigger Pirate Encounters on any map]]. 
+
+For harder enemies, install a mod from [https://steamcommunity.com/sharedfiles/filedetails/?id=1991339991 Modular Encounter Systems].
+
+
+Experienced player may be interested in how to [https://docs.google.com/document/d/1dr8JBHEG40aoj7NNM_dN7cZQnEHUuU7TIXNf-paKPI4/edit edit NPC factions in the &lt;MyObjectBuilder_Faction> section of the Sandbox.sbc file].
+
+
+[[Category:Economy]]
+[[Category:Factions]]
+[[Category:Scenarios]]
+[[Category:NPC]]
+[[Category:Lore]]
